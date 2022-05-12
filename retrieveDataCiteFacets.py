@@ -235,7 +235,7 @@ else:
 
 d_list = []                                         # initialize list of dictionaries
 
-for target in targets:                              # loop through targets
+for target in set(targets):                              # loop through targets
     lggr.debug(f'target')
 
     for item in parameters[target]['data']:         # loop items in target data
