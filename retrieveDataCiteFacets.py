@@ -215,7 +215,7 @@ targets = []
                                             
 if args.getRelations:                       # the target retrievals can be controlled by command line arguments:
     targets.append('relations')             # --affiliations --contributors --relations --resources retrieve all 
-if args.getRelations:                       # items in each list, i.e. all relationTypes...
+if args.getResources:                       # items in each list, i.e. all relationTypes...
     targets.append('resources')
 if args.getAffiliations:
     targets.append('affiliations')
