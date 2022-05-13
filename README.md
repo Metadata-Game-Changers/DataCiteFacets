@@ -61,7 +61,7 @@ Facets
 
 ## Selecting items
 
-###Command line options provide shortcuts to select all of the items in a target:
+### Command line options provide shortcuts to select all of the items in a target:
 | Flag  | Selection| Flag  | Selection|
 |:-------- |:------| :-------- |:------| 
 | --affiliations | query all affiliations|--relations | query all relationTypes|
