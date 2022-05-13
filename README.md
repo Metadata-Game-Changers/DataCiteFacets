@@ -72,4 +72,12 @@ Sometimes it is hard to remember what kind of target a particular target is or y
 
 *Keep in mind that these three criteria are completely independent, these are all separate queries.*
 
+## Selecting facets
+Each DataCite API queries returns data for 18 facets covering many aspects of DataCite usage. Many times this can cause information overload! If you are answering specific questions, you may need only a small number of these facets. For example, if you are only interested in the number of records, the "states" facet is all you need: **retrieveRelationAndResourceCounts -il DataManager InteractiveResource Book -fl states --pout** gives the samll result:  
+
+| Id                  |    DateTime |   NumberOfRecords |   states_number |   states_max | states_common   |   states_total |   states_HI | states            |
+|---------------------|-------------|-------------------|-----------------|--------------|-----------------|----------------|-------------|-------------------|
+| DataManager         | 20220513_16 |            944221 |               1 |       944221 | findable        |         944221 |           1 | Findable (944221) |
+| Book                | 20220513_16 |             15086 |               1 |        15086 | findable        |          15086 |           1 | Findable (15086)  |
+| InteractiveResource | 20220513_16 |             31889 |               1 |        31889 | findable        |          31889 |           1 | Findable (31889)  |
 
