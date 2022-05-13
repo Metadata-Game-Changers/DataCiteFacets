@@ -81,3 +81,14 @@ Each DataCite API queries returns data for 18 facets covering many aspects of Da
 | Book                | 20220513_16 |             15086 |               1 |        15086 | findable        |          15086 |           1 | Findable (15086)  |
 | InteractiveResource | 20220513_16 |             31889 |               1 |        31889 | findable        |          31889 |           1 | Findable (31889)  |
 
+Which shows that there are nearly 1 million Data Managers referenced in DataCite metadata. 
+
+_Bonus Question_: There are actually three related contributor types: DataCollector, DataCurator, DataManager. How does usage of these compare?
+
+**retrieveRelationAndResourceCounts -il DataCollector DataCurator DataManager -fl states --pout**.  
+
+| Id            |    DateTime |   NumberOfRecords |   states_number |   states_max | states_common   |   states_total |   states_HI | states            |
+|---------------|-------------|-------------------|-----------------|--------------|-----------------|----------------|-------------|-------------------|
+| DataCollector | 20220513_17 |            886529 |               1 |       886529 | findable        |         886529 |           1 | Findable (886529) |
+| DataCurator   | 20220513_17 |            137177 |               1 |       137177 | findable        |         137177 |           1 | Findable (137177) |
+| DataManager   | 20220513_17 |            944238 |               1 |       944238 | findable        |         944238 |           1 | Findable (944238) |
