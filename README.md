@@ -36,3 +36,35 @@ options:
                         Logging level for logging module (https://docs.python.org/3/howto/logging.html#useful-handlers)
   --logto FILE          Log file (will append to file if exists)
   ```
+  
+  ## Targets
+RetrieveDataCiteFacets is designed to answer questions about several kinds of *targets*, specifically resourceTypes, relationTypes, contributorTypes, or creator affiliations (a special case). *Targets* are groups of *items* defined by DataCite codelists. To see the *items* included in each *target*, use the --showtargets flag to display all *target items*.  
+
+**retrieveRelationAndResourceCounts --showtargets**
+
+Target: relations  
+['IsCitedBy', 'Cites', 'IsSupplementTo', 'IsSupplementedBy', 'IsContinuedBy', 'Continues', 'IsNewVersionOf', 'IsPreviousVersionOf', 'IsPartOf', 'HasPart', 'IsPublishedIn', 'IsReferencedBy', 'References', 'IsDocumentedBy', 'Documents', 'IsCompiledBy', 'Compiles', 'IsVariantFormOf', 'IsOriginalFormOf', 'IsIdenticalTo', 'HasMetadata', 'IsMetadataFor', 'Reviews', 'IsReviewedBy', 'IsDerivedFrom', 'IsSourceOf', 'Describes', 'IsDescribedBy', 'HasVersion', 'IsVersionOf', 'Requires', 'IsRequiredBy', 'Obsoletes', 'IsObsoletedBy']
+
+Target: resources  
+['Audiovisual', 'Book', 'BookChapter', 'Collection', 'ComputationalNotebook', 'ConferencePaper', 'ConferenceProceeding', 'DataPaper', 'Dataset', 'Dissertation', 'Event', 'Image', 'InteractiveResource', 'Journal', 'JournalArticle', 'Model', 'OutputManagementPlan', 'PeerReview', 'PhysicalObject', 'Preprint', 'Report', 'Service', 'Software', 'Sound', 'Standard', 'Text', 'Workflow', 'Other']
+
+Target: contributors  
+['ContactPerson', 'DataCollector', 'DataCurator', 'DataManager', 'Distributor', 'Editor', 'HostingInstitution', 'Other', 'Producer', 'ProjectLeader', 'ProjectManager', 'ProjectMember', 'RegistrationAgency', 'RegistrationAuthority', 'RelatedPerson', 'ResearchGroup', 'RightsHolder', 'Researcher', 'Sponsor', 'Supervisor', 'WorkPackageLeader']
+
+Target: affiliations  
+['Cornell University', 'University of Minnesota', 'Duke University', 'University of Michigan', 'Washington University in St. Louis', 'Virginia Tech']
+
+Facets 
+['states', 'resourceTypes', 'created', 'published', 'registered', 'providers', 'clients', 'affiliations', 'prefixes', 'certificates', 'licenses', 'schemaVersions', 'linkChecksStatus', 'subjects', 'fieldsOfScience', 'citations', 'views', 'downloads']
+
+*Note: the affiliations items shown here are an example of an affiliation target that includes several Universities. This list is defined in the code and needs to be modified to include the affiliation strings you need to search for.*
+
+## Selecting items
+
+###Command line options provide shortcuts to select all of the items in a target:
+| Flag  | Selection| Flag  | Selection|
+|:-------- |:------| :-------- |:------| 
+| --affiliations | query all affiliations|--relations | query all relationTypes|
+| --contributors | query all contributorTypes |--relations | query all resourceTypes|
+
+
