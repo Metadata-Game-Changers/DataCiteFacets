@@ -67,4 +67,9 @@ Facets
 | --affiliations | query all affiliations|--relations | query all relationTypes|
 | --contributors | query all contributorTypes |--relations | query all resourceTypes|
 
+### Select items from different targets
+Sometimes it is hard to remember what kind of target a particular target is or you might need a small selection of items from several targets to answer some interesting questions. In this case, use the item list (-il) option. For example **retrieveRelationAndResourceCounts -il DataManager InteractiveResource Book** retrieves facet counts for records that have contributorType="Data Manager" or "resourceTypeGeneral="InteractiveResource" or "resourceTypeGeneral="Books".  
+
+*Keep in mind that these three criteria are completely independent, these are all separate queries.*
+
 
