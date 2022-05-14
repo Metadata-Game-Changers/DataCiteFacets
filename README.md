@@ -39,6 +39,9 @@ options:
   
 ```
 
+## Environment
+The environment definition for this application is in *dataCiteFacets.yml*. 
+
 ## Targets and Items
 RetrieveDataCiteFacets is designed to answer questions about several kinds of *targets*, specifically resourceTypes, relationTypes, contributorTypes, or creator affiliations (a special case). *Targets* are groups of *items* defined by DataCite codelists. To see the *items* included in each *target*, use the --showtargets flag to display all *target items*.  
 
@@ -110,13 +113,13 @@ Each DataCite API queries returns data for 18 facets covering many aspects of Da
 | Flag  | Output Format |
 |:-------- |:------|
 | --csvout | Output the data as comma-separated values (csv) into a file named *DataCite\_target1_target2\_\_dateStamp.csv* where taregt1\_target2 is an underscore separated list of the targets being retrieved. Each row contains three header columns (item id, DateTime (YYYYMMDD\_HH), and NumberOfRecords in complete query result) and then five columns/facet with names that correspond to the statistics described above. The names have the form facet\_statistic do, for the clients facet, the columns are clients\_number, clients\_max, clients\_common, clients\_total, clients\_HI, and clients (a string representation of the result).|
-| --dbout |Output the data into a sqlite database in a file defined by the environment variable DATACITE\_STATISTICS\_DATABASE. The name of the database table is given by the variable _databaseTableName_. The structure of this query is defined in file.|
+| --dbout |Output the data into a sqlite database in a file defined by the environment variable DATACITE\_STATISTICS\_DATABASE. The name of the database table is given by the variable _databaseTableName_. The structure of this query is defined in *createTable.sql*.|
 |--pout|This option writes output to the terminal in the format of a github markdown table using the *tabulate* python package. This format is unusable in most cases, but it can provide an easy quick look for limited query results.|
 |--jout|This option writes the json query results into files in the directory *homeDir/data/DataCite/metadata/target__dateStamp/json. The files are named item.json with spaces replaced by '\_'.|
 
 ## Selecting items
 
-### Command line options provide shortcuts to select all of the items in a target:
+###Command line options provide shortcuts to select all of the items in a target:
 | Flag  | Selection| Flag  | Selection|
 |:-------- |:------| :-------- |:------| 
 | --affiliations | query all affiliations|--relations | query all relationTypes|
