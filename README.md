@@ -45,7 +45,7 @@ The environment definition for this application is in *dataCiteFacets.yml*.
 ## Targets and Items
 RetrieveDataCiteFacets is designed to answer questions about several kinds of *targets*, specifically resourceTypes, relationTypes, contributorTypes, or creator affiliations (a special case). *Targets* are groups of *items* defined by DataCite codelists. To see the *items* included in each *target*, use the --showtargets flag to display all *target items*.  
 
-**retrieveRelationAndResourceCounts --showtargets**
+**python retrieveDataCiteFacets.py --showtargets**
 
 Target: relations  
 ['IsCitedBy', 'Cites', 'IsSupplementTo', 'IsSupplementedBy', 'IsContinuedBy', 'Continues', 'IsNewVersionOf', 'IsPreviousVersionOf', 'IsPartOf', 'HasPart', 'IsPublishedIn', 'IsReferencedBy', 'References', 'IsDocumentedBy', 'Documents', 'IsCompiledBy', 'Compiles', 'IsVariantFormOf', 'IsOriginalFormOf', 'IsIdenticalTo', 'HasMetadata', 'IsMetadataFor', 'Reviews', 'IsReviewedBy', 'IsDerivedFrom', 'IsSourceOf', 'Describes', 'IsDescribedBy', 'HasVersion', 'IsVersionOf', 'Requires', 'IsRequiredBy', 'Obsoletes', 'IsObsoletedBy']
@@ -96,7 +96,7 @@ The json query responses can be saved directly using the **json output (-jout)**
 As the program runs the python logging package is used to provide timestamps as well as information about queries that are being run and the number of results.
 
 ```
-2022-05-13 16:57:52:INFO:retrieveDataCiteFacets: *********************************** retrieveRelationandResourceCounts 20220513_16
+2022-05-13 16:57:52:INFO:retrieveDataCiteFacets: *********************************** python retrieveDataCiteFacets.py 20220513_16
 2022-05-13 16:57:52:INFO:retrieveDataCiteFacets: Targets: ['contributors', 'resources', 'resources']
 2022-05-13 16:57:55:INFO:retrieveDataCiteFacets: Count: 1 target: contributors URL: https://api.datacite.org/dois?query=contributors.contributorType:DataManager Number of records: 944221
 2022-05-13 16:57:57:INFO:retrieveDataCiteFacets: Count: 2 target: resources URL: https://api.datacite.org/dois?&page[size]=1&resource-type-id=Book Number of records: 15086
@@ -126,12 +126,12 @@ Each DataCite API queries returns data for 18 facets covering many aspects of Da
 | --contributors | query all contributorTypes |--relations | query all resourceTypes|
 
 ### Select items from different targets
-Sometimes it is hard to remember what kind of target a particular target is or you might need a small selection of items from several targets to answer some interesting questions. In this case, use the item list (-il) option. For example **retrieveRelationAndResourceCounts -il DataManager InteractiveResource Book** retrieves facet counts for records that have contributorType="Data Manager" or "resourceTypeGeneral="InteractiveResource" or "resourceTypeGeneral="Books".  
+Sometimes it is hard to remember what kind of target a particular target is or you might need a small selection of items from several targets to answer some interesting questions. In this case, use the item list (-il) option. For example **python retrieveDataCiteFacets.py -il DataManager InteractiveResource Book** retrieves facet counts for records that have contributorType="Data Manager" or "resourceTypeGeneral="InteractiveResource" or "resourceTypeGeneral="Books".  
 
 *Keep in mind that these three criteria are completely independent, these are all separate queries.*
  
 ## Selecting facets
-Each DataCite API queries returns data for 18 facets covering many aspects of DataCite usage. Many times this can cause information overload! If you are answering specific questions, you may need only a small number of these facets. For example, if you are only interested in the number of records, the "states" facet is all you need: **retrieveRelationAndResourceCounts -il DataManager InteractiveResource Book -fl states --pout** gives the samll result:  
+Each DataCite API queries returns data for 18 facets covering many aspects of DataCite usage. Many times this can cause information overload! If you are answering specific questions, you may need only a small number of these facets. For example, if you are only interested in the number of records, the "states" facet is all you need: **python retrieveDataCiteFacets.py -il DataManager InteractiveResource Book -fl states --pout** gives the samll result:  
 
 | Id                  |    DateTime |   NumberOfRecords |   states_number |   states_max | states_common   |   states_total |   states_HI | states            |
 |---------------------|-------------|-------------------|-----------------|--------------|-----------------|----------------|-------------|-------------------|
@@ -143,7 +143,7 @@ Which shows that there are nearly 1 million Data Managers referenced in DataCite
 
 _Bonus Question_: There are actually three related contributor types: DataCollector, DataCurator, DataManager. How does usage of these compare?
 
-**retrieveRelationAndResourceCounts -il DataCollector DataCurator DataManager -fl states --pout**.  
+**python retrieveDataCiteFacets.py -il DataCollector DataCurator DataManager -fl states --pout**.  
 
 | Id            |    DateTime |   NumberOfRecords |   states_number |   states_max | states_common   |   states_total |   states_HI | states            |
 |---------------|-------------|-------------------|-----------------|--------------|-----------------|----------------|-------------|-------------------|
