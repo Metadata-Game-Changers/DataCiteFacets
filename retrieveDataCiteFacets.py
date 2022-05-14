@@ -320,10 +320,11 @@ item_df = pd.DataFrame(d_list) # create dataframe
 if args.dbout:                                  # add data to database
     import sqlite3                              # get sqlite3 package
     con, cur = connectToDataCiteDatabase()      # connect to database for output
-    item_df.to_sql('relationsAndResources',con,if_exists='append',index=False)
+    databaseTableName = 'relationsAndResources'
+    item_df.to_sql(databaseTableName,con,if_exists='append',index=False)
 
 if args.csvout:                                 # output data to csv
-    outputFile = 'DataCite_' + '_'.join(targets) + '__' + dateStamp + '.csv'
+    outputFile = 'DataCite_' + '_'.join(set(targets)) + '__' + dateStamp + '.csv'
     lggr.info(f'facet count output to {outputFile}')
     item_df.to_csv(outputFile,encoding='utf-8',sep=',',index=False)
 
