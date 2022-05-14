@@ -1,0 +1,43 @@
+name: dataCiteFacets
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - bzip2=1.0.8=h0d85af4_4
+  - ca-certificates=2021.10.8=h033912b_0
+  - libblas=3.9.0=14_osx64_openblas
+  - libcblas=3.9.0=14_osx64_openblas
+  - libcxx=14.0.3=hc203e6f_0
+  - libffi=3.4.2=h0d85af4_5
+  - libgfortran=5.0.0=9_3_0_h6c81a4c_23
+  - libgfortran5=9.3.0=h6c81a4c_23
+  - liblapack=3.9.0=14_osx64_openblas
+  - libopenblas=0.3.20=openmp_hb3cd9ec_0
+  - libzlib=1.2.11=h6c3fc93_1014
+  - llvm-openmp=14.0.3=ha654fa7_0
+  - ncurses=6.3=h96cf925_1
+  - openssl=3.0.3=hfe4f2af_0
+  - pip=22.1=pyhd8ed1ab_0
+  - python=3.10.4=h1cc4136_0_cpython
+  - python-dateutil=2.8.2=pyhd8ed1ab_0
+  - python_abi=3.10=2_cp310
+  - pytz=2022.1=pyhd8ed1ab_0
+  - readline=8.1=h05e3726_0
+  - six=1.16.0=pyh6c4a22f_0
+  - sqlite=3.38.5=hd9f0692_0
+  - tk=8.6.12=h5dbffcc_0
+  - tzdata=2022a=h191b570_0
+  - wheel=0.37.1=pyhd8ed1ab_0
+  - xz=5.2.5=haf1e3a3_1
+  - zlib=1.2.11=h6c3fc93_1014
+  - pip:
+    - certifi==2021.10.8
+    - charset-normalizer==2.0.12
+    - idna==3.3
+    - numpy==1.22.3
+    - pandas==1.4.2
+    - requests==2.27.1
+    - setuptools==62.2.0
+    - tabulate==0.8.9
+    - urllib3==1.26.9
+prefix: /Users/metadatagamechanger/opt/anaconda3/envs/dataCiteFacets

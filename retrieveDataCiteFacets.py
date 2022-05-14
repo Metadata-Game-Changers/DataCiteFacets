@@ -1,39 +1,45 @@
 import json
 import datetime
 from posix import CLD_CONTINUED
-from numpy import append
 import pandas as pd
 import sys
 import argparse
 import logging
 import requests
 import os
-from pathlib import Path
-import sqlite3
+#from numpy import append
 
 def connectToDataCiteDatabase():
-    #
-    # make database connection
-    #
+    '''
+       make connection to sqlite database, a file defined as an environment variable
+    '''
     database = os.environ['DATACITE_STATISTICS_DATABASE']       # environment defines database location
     con = sqlite3.connect(database)
     cur = con.cursor()
     return(con,cur)
 
 
-def createCountStringFromListOfDictionaries(l):
-    ''' make a list of counts from DataCite list of property dictionaries (l)'''
+def createCountStringFromListOfDictionaries(l:list                  # list of property dictionaries ({})
+                                            )->str:
+    '''
+        Make a list of counts from DataCite list of property dictionaries (l)
+
+        The list has the form title1 (count1), title2 (count2), ...
+    '''
     s = ''
     s = ", ".join([d['title'].replace(',',';') + ' (' + str(d['count']) + ')' for d in l])
  
     return s
 
 
-def retrieveMetadata(URL:str):
+def retrieveMetadata(URL:str                            # DataCite API URL
+                    )-> requests.models.Response:       # query response
 
-    ''' retrieve response from URL '''
+    '''
+        retrieve and return DataCite metadata response from URL 
+    '''
 
-    lggr.info(f"Retrieving Metadata: {URL}")
+    lggr.debug(f"Retrieving Metadata: {URL}")
 
     try:
         response = requests.get(URL)
@@ -58,8 +64,23 @@ def retrieveMetadata(URL:str):
     return response
 
 
-def createfacetsDataframe(facetList,item, dateStamp, numberOfRecords, item_json):
-
+def  createFacetsDictionary(facetList: list,                # list of facets e.g. ['states','resourceTypes','created'] see full list below
+                            item:str,                       # item (resource, relation, contributorType) being retrieved,
+                            dateStamp: str,                 # datestamp (YYYYMMDD_HH) 
+                            numberOfRecords:int,            # number of records in query
+                            item_json:dict)-> dict:         # json retrieved for item 
+    '''
+        Read DataCite json response and create a summary dictionary for facets in a list. 
+        
+        For the facet f, the dictionary includes the query item, the datestamp, the numberOfRecords and
+        the following statistics:
+            f_number: the number of facet values
+            f_max: the maximum facet value
+            f_common: the name of the facet with the largest value
+            f_total: the total of all of the facet values
+            f_HI: the homogeneity index (f_max / f_total)
+            f: the facet names and values written as a name (value) string
+    '''
     d_list = []
     #
     # initialize facets dictionary
@@ -82,9 +103,9 @@ def createfacetsDataframe(facetList,item, dateStamp, numberOfRecords, item_json)
                 d_dict[f + '_total'] = sum([d['count'] for d in item_json['meta'][f]])      # add total for facet
                 d_dict[f + '_HI'] = d_dict[f + '_max'] /  d_dict[f + '_total']              # add total for facet
                 output = createCountStringFromListOfDictionaries(item_json['meta'][f])
-                d_dict[f] = output # add counts to dictionary
+                d_dict[f] = output # add count string to dictionary
 
-    return d_dict # return facets dictionary for item
+    return d_dict # return facet dictionary for item
 
 parameters = {
     "relations": {
@@ -123,7 +144,7 @@ facets = ['states','resourceTypes','created','published','registered','providers
 commandLine=argparse.ArgumentParser(prog='retrieveDataCiteFacets',
                         description='''Use DataCite API to retrieve metadata records for given relationType, resourceType, 
                                     contributorType, and affiliations from DataCite. Save the retrieved metadata into
-                                    json files (--outputJson) and facet data into csv file or database (defined in environment).'''
+                                    json files (--jout) and facet data into csv file or database (defined in environment).'''
 )
 commandLine.add_argument("-il", "--itemList", nargs="*", type=str,
                         help='list of items to retrieve', default=[]
@@ -164,17 +185,25 @@ commandLine.add_argument('--showURLs', dest='showURLs',
                         default=False, action='store_true',
                         help='''Show URLs that will be retrieved but DO NOT retrieve metadata'''
 )
-commandLine.add_argument('--jout', dest='outputJson', 
+commandLine.add_argument('--showtargets', dest='showTargetData', 
                         default=False, action='store_true',
-                        help='Output retrieved metadata in json files'
-)
-commandLine.add_argument('--dbout', dest='dbout', 
-                        default=False, action='store_true',
-                        help='Output results in database'
+                        help='''Show target lists (e.g. all resourceTypes, relationTypes, contributorTypes)'''
 )
 commandLine.add_argument('--csvout', dest='csvout', 
                         default=False, action='store_true',
                         help='Output results in CSV file'
+)
+commandLine.add_argument('--dbout', dest='dbout', 
+                        default=False, action='store_true',
+                        help='Output results in database (requires sqlite3 package)'
+)
+commandLine.add_argument('--jout', dest='jout', 
+                        default=False, action='store_true',
+                        help='Output retrieved metadata in json files'
+)
+commandLine.add_argument('--pout', dest='pout', 
+                        default=False, action='store_true',
+                        help='Output facet counts to terminal (requires tabulate package https://pypi.org/project/tabulate/)'
 )
 commandLine.add_argument('--loglevel', default='info',
                         choices=['debug', 'info', 'warning'],
@@ -204,7 +233,13 @@ lggr = logging.getLogger('retrieveDataCiteFacets')
 current_time = datetime.datetime.now()
 dateStamp = f'{current_time.year}{current_time.month:02d}{current_time.day:02d}_{current_time.hour:02d}'
 
-homeDir = str(Path.home())
+homeDir = os.path.expanduser('~')
+
+if args.showTargetData:                 # list items for each target
+    for t in  list(parameters):
+        print(f"\nTarget: {t}\n{parameters[t]['data']}")
+    print(f'\nFacets\n{facets}')
+    exit()
 
 lggr.info(f'*********************************** retrieveRelationandResourceCounts {dateStamp}')
 
@@ -235,7 +270,7 @@ else:
 
 d_list = []                                         # initialize list of dictionaries
 
-for target in set(targets):                              # loop through targets
+for target in set(targets):                         # loop through targets
     lggr.debug(f'target')
 
     for item in parameters[target]['data']:         # loop items in target data
@@ -255,10 +290,12 @@ for target in set(targets):                              # loop through targets
         res = retrieveMetadata(URL)             # retrieve metadata from DataCite
         item_json = res.json()
 
-        if args.outputJson:     # write json to file
-            jsonDirectory = homeDir + '/data/DataCite/metadata/' + item.replace(' ','_') + '__' + dateStamp + '/json'
+        if args.jout:           # write json to file in directory home/data/DataCite/metadata/
+                                # the file name includes item__datestamp
+            jsonDirectory = homeDir + '/data/DataCite/metadata/' + target + '__' + dateStamp + '/json'
             os.makedirs(jsonDirectory, exist_ok = True)
             jsonFile = jsonDirectory + '/' + item.replace(' ','_') + '.json'
+            lggr.info(f'{item} json output to {jsonFile}')
             with open(jsonFile,'w') as outf:
                 json.dump(item_json, outf, ensure_ascii=False)
 
@@ -275,15 +312,23 @@ for target in set(targets):                              # loop through targets
         else:
             facetList = facets
 
-        d_dict = createfacetsDataframe(facetList,item, dateStamp, numberOfRecords, item_json)
+        d_dict =  createFacetsDictionary(facetList,item, dateStamp, numberOfRecords, item_json)
         d_list.append(d_dict)
 
 item_df = pd.DataFrame(d_list) # create dataframe
 
 if args.dbout:                                  # add data to database
+    import sqlite3                              # get sqlite3 package
     con, cur = connectToDataCiteDatabase()      # connect to database for output
     item_df.to_sql('relationsAndResources',con,if_exists='append',index=False)
 
 if args.csvout:                                 # output data to csv
     outputFile = 'DataCite_' + '_'.join(targets) + '__' + dateStamp + '.csv'
+    lggr.info(f'facet count output to {outputFile}')
     item_df.to_csv(outputFile,encoding='utf-8',sep=',',index=False)
+
+if args.pout:                                       # print facet counts to screen
+                                                    # this produces VERY UGLY screen output that may work 
+                                                    # for a quick look in some cases.  
+    from tabulate import tabulate
+    print(tabulate(item_df, headers='keys', tablefmt='github', showindex=False))
