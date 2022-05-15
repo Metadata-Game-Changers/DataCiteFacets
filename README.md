@@ -3,7 +3,9 @@ The [DataCite Metadata Schema](https://schema.datacite.org/meta/kernel-4.4/) has
 
 A facet is a metadata element, usually from a controlled list, that provides counts of records in a query result with particular values for the metadata element. The [DataCite JSON Response](https://blog.datacite.org/introducing-datacite-json/) includes data on a variety of facets for each query done using the DataCite API. This tool retrieves those facets for a variety of queries and summarizes the results.
 
-## Usage
+[TOC]
+
+# Usage
 **Use python retrieveDataCiteFacets.py -h to see this usage description.**
 
 ```
@@ -40,10 +42,10 @@ options:
   
 ```
 
-## Environment
+# Environment
 The environment definition for this application is in *dataCiteFacets.yml*. This file can be used to create the environment using the command *conda env create -f environment.yml*. After that environment is created, activate it using the *conda activate dataCiteFacets* command and the command *retrieveDataCiteFacets -h* will show the usage description.
 
-## Targets and Items
+# Targets and Items
 RetrieveDataCiteFacets is designed to answer questions about several kinds of *targets*, specifically resourceTypes, relationTypes, contributorTypes, or creator affiliations (a special case). *Targets* are groups of *items* defined by DataCite codelists. To see the *items* included in each *target*, use the --showtargets flag to display all *target items*.  
 
 **python retrieveDataCiteFacets.py --showtargets**
@@ -65,7 +67,7 @@ Facets
 
 *Note: the affiliations items shown here are an example of an affiliation target that includes several Universities. This list is defined in the code and needs to be modified to include the affiliation strings you need to search for.*
 
-## Outputs
+# Outputs
 As described above, the facet results are returned from the query as a list of dictionaries that include ids, titles, and values. As an example, this is the list of dictionaries for clients (repositories) that use the PhysicalObject resourceType:
 
 ```
@@ -93,7 +95,7 @@ The json query responses can be saved directly using the **json output (-jout)**
 |total|The total number of resources in the top 10|1390569|
 |homogeneity|An indicator of homogeneity of the list (0.1 = uniform, 1.0 = single item)|78%|
 
-### Terminal Output
+## Terminal Output
 As the program runs the python logging package is used to provide timestamps as well as information about queries that are being run and the number of results.
 
 ```
@@ -104,10 +106,10 @@ As the program runs the python logging package is used to provide timestamps as 
 2022-05-13 16:57:58:INFO:retrieveDataCiteFacets: Count: 3 target: resources URL: https://api.datacite.org/dois?&page[size]=1&resource-type-id=InteractiveResource Number of records: 31889
 ```
 
-### --showURLs
+## --showURLs
 The --showURLs flag can be used to display the URLs that will be retrieved for a given set of flags without retrieving the data. This can be used for testing or if you are curious about how the queries are done.
 
-### File Output
+## File Output
 
 Each DataCite API queries returns data for 18 facets covering many aspects of DataCite usage. The inclusion of these statistics for each facet leads to 90 pieces of data for each item. There are several ways to output these data after they are retrieved with output choices made using command line flags:
 
@@ -118,23 +120,23 @@ Each DataCite API queries returns data for 18 facets covering many aspects of Da
 |--pout|This option writes output to the terminal in the format of a github markdown table using the *tabulate* python package. This format is unusable in most cases, but it can provide an easy quick look for limited query results.|
 |--jout|This option writes the json query results into files in the directory *homeDir/data/DataCite/metadata/target__dateStamp/json. The files are named item.json with spaces replaced by '\_'.|
 
-## Selecting items
+# Selecting items
 
-###Command line options provide shortcuts to select all of the items in a target:
+##Command line options provide shortcuts to select all of the items in a target:
 | Flag  | Selection| Flag  | Selection|
 |:-------- |:------| :-------- |:------| 
 | --affiliations | query all affiliations|--relations | query all relationTypes|
 | --contributors | query all contributorTypes |--relations | query all resourceTypes|
 
-### Select items from different targets
+## Select items from different targets
 Sometimes it is hard to remember what kind of target a particular target is or you might need a small selection of items from several targets to answer some interesting questions. In this case, use the item list (-il) option. For example **python retrieveDataCiteFacets.py -il DataManager InteractiveResource Book** retrieves facet counts for records that have contributorType="Data Manager" or "resourceTypeGeneral="InteractiveResource" or "resourceTypeGeneral="Books".  
 
 *Keep in mind that these three criteria are completely independent, these are all separate queries.*
 
-### Selecting Affiliations
+## Selecting Affiliations
 The affiliations target is special because it is controlled by specific user needs rather than a DataCite controlled vocabulary. It was designed to enable discovery of where DataCite resources from particular organizations were published. Using this option requires editing the code to create your own list of affiliations. See the affiliations.data item in the parameter dictionary. 
  
-## Selecting facets
+# Selecting facets
 Each DataCite API queries returns data for 18 facets covering many aspects of DataCite usage. Many times this can cause information overload! If you are answering specific questions, you may need only a small number of these facets. For example, if you are only interested in the number of records, the "states" facet is all you need: **python retrieveDataCiteFacets.py -il DataManager InteractiveResource Book -fl states --pout** gives the samll result:  
 
 | Id                  |    DateTime |   NumberOfRecords |   states_number |   states_max | states_common   |   states_total |   states_HI | states            |
@@ -154,3 +156,5 @@ _Bonus Question_: There are actually three related contributor types: DataCollec
 | DataCollector | 20220513_17 |            886529 |               1 |       886529 | findable        |         886529 |           1 | Findable (886529) |
 | DataCurator   | 20220513_17 |            137177 |               1 |       137177 | findable        |         137177 |           1 | Findable (137177) |
 | DataManager   | 20220513_17 |            944238 |               1 |       944238 | findable        |         944238 |           1 | Findable (944238) |
+
+# Examples
