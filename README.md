@@ -3,8 +3,6 @@ The [DataCite Metadata Schema](https://schema.datacite.org/meta/kernel-4.4/) has
 
 A facet is a metadata element, usually from a controlled list, that provides counts of records in a query result with particular values for the metadata element. The [DataCite JSON Response](https://blog.datacite.org/introducing-datacite-json/) includes data on a variety of facets for each query done using the DataCite API. This tool retrieves those facets for a variety of queries and summarizes the results.
 
-[TOC]
-
 # Usage
 **Use python retrieveDataCiteFacets.py -h to see this usage description.**
 
@@ -158,3 +156,34 @@ _Bonus Question_: There are actually three related contributor types: DataCollec
 | DataManager   | 20220513_17 |            944238 |               1 |       944238 | findable        |         944238 |           1 | Findable (944238) |
 
 # Examples
+So, how can these facet data be used to answer questions about DataCite metadata? One interesting question is “How do DataCite metadata evolve?”. An interesting test case for this question occurred with the introduction of Version 4.4 of the DataCite Schema during early 2021. That version of the schema included thirteen new resource types in the resourceTypeGeneral codelist, a required field (Figure 1). ![DataCite resource type evolution](resourceTypeGeneralHistoryAnnotated.png)
+
+The history of usage of these resource types in DataCite can be examined using the "registered" facet and this command:
+**python retrieveDataCiteFacets -il Book Report Journal Preprint Standard PeerReview BookChapter Dissertation JournalArticle ConferencePaper ConferenceProceeding ComputationalNotebook OutputManagementPlan  -fl registered  --pout**
+
+which produces:
+
+| Id                    |    DateTime |   NumberOfRecords |   registered_number |   registered_max |   registered_common |   registered_total |   registered_HI | registered                                                                                                                        |
+|-----------------------|-------------|-------------------|---------------------|------------------|---------------------|--------------------|-----------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| Book                  | 20220515_13 |             15109 |                  10 |             6295 |                2021 |              14532 |        0.433182 | 2022 (4162), 2021 (6295), 2020 (596), 2019 (453), 2018 (1098), 2017 (904), 2016 (623), 2015 (370), 2014 (9), 2013 (22)            |
+| BookChapter           | 20220515_13 |             10852 |                  10 |             7456 |                2021 |              10852 |        0.687062 | 2022 (2584), 2021 (7456), 2020 (62), 2019 (31), 2018 (28), 2017 (100), 2016 (200), 2015 (97), 2012 (289), 2011 (5)                |
+| ComputationalNotebook | 20220515_13 |                10 |                   3 |                6 |                2021 |                 10 |        0.6      | 2022 (3), 2021 (6), 2019 (1)                                                                                                      |
+| ConferencePaper       | 20220515_13 |             22656 |                   9 |            12105 |                2022 |              22654 |        0.534343 | 2022 (12105), 2021 (10174), 2020 (166), 2019 (69), 2018 (20), 2017 (36), 2016 (8), 2015 (7), 2013 (69)                            |
+| ConferenceProceeding  | 20220515_13 |               847 |                  10 |              288 |                2020 |                738 |        0.390244 | 2022 (124), 2021 (144), 2020 (288), 2019 (8), 2018 (10), 2017 (36), 2016 (89), 2015 (28), 2014 (6), 2013 (5)                      |
+| Dissertation          | 20220515_13 |             62652 |                  10 |            31784 |                2022 |              62641 |        0.507399 | 2022 (31784), 2021 (14607), 2020 (16200), 2019 (11), 2018 (10), 2017 (16), 2016 (4), 2015 (2), 2014 (5), 2013 (2)                 |
+| Journal               | 20220515_13 |               372 |                   3 |              293 |                2021 |                372 |        0.787634 | 2022 (71), 2021 (293), 2020 (8)                                                                                                   |
+| JournalArticle        | 20220515_13 |            176062 |                  10 |            96410 |                2022 |             173734 |        0.554929 | 2022 (96410), 2021 (66600), 2020 (976), 2019 (569), 2018 (230), 2017 (1949), 2016 (6404), 2015 (14), 2014 (580), 2012 (2)         |
+| OutputManagementPlan  | 20220515_13 |               955 |                   4 |              524 |                2021 |                955 |        0.548691 | 2022 (233), 2021 (524), 2020 (135), 2019 (63)                                                                                     |
+| PeerReview            | 20220515_13 |               291 |                   2 |              270 |                2021 |                291 |        0.927835 | 2022 (21), 2021 (270)                                                                                                             |
+| Preprint              | 20220515_13 |            928793 |                   5 |           927425 |                2022 |             928782 |        0.998539 | 2022 (927425), 2021 (1299), 2020 (34), 2019 (13), 2018 (11)                                                                       |
+| Report                | 20220515_13 |             81949 |                  10 |            10041 |                2021 |              59084 |        0.169944 | 2022 (5816), 2021 (10041), 2020 (4487), 2019 (5100), 2018 (5131), 2017 (6569), 2016 (8356), 2015 (4979), 2014 (3926), 2013 (4679) |
+| Standard              | 20220515_13 |              2146 |                   7 |             1337 |                2022 |               2146 |        0.62302  | 2022 (1337), 2021 (578), 2020 (6), 2019 (213), 2018 (3), 2017 (7), 2016 (2)                                                       |
+
+
+The “registered” facet data for these resource types reveal several interesting patterns:  
+
+1. The new resource types have been used over 1.3 million times.
+1. Most of the types were assigned to items registered over ten years (num-ber = 10), indicating that repositories updated previously registered DOIs with new types (an important prerequisite for metadata evolution).
+1. Preprint is by far the most used of the new types, accounting for 71% of the items.
+1. The vast majority of preprint DOIs (928,772) were registered during 2022.
+1. Repositories have already registered more items with five new types (ConferencePaper, Dissertation, JournalArticle, Preprint, Standard) during 2022 than during any other year.
