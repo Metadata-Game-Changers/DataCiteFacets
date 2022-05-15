@@ -237,8 +237,8 @@ homeDir = os.path.expanduser('~')
 
 if args.showTargetData:                 # list items for each target
     for t in  list(parameters):
-        print(f"\nTarget: {t}\n{parameters[t]['data']}")
-    print(f'\nFacets\n{facets}')
+        print(f"\nTarget {t} ({len(parameters[t]['data'])}) items:\n{parameters[t]['data']}")
+    print(f'\nFacets ({len(facets)}) items:\n{facets}')
     exit()
 
 lggr.info(f'*********************************** retrieveRelationandResourceCounts {dateStamp}')

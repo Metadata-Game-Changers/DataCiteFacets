@@ -40,7 +40,7 @@ options:
 ```
 
 ## Environment
-The environment definition for this application is in *dataCiteFacets.yml*. 
+The environment definition for this application is in *dataCiteFacets.yml*. This file can be used to create the environment using the command *conda env create -f environment.yml*. After that environment is created, activate it using the *conda activate dataCiteFacets* command and the command *retrieveDataCiteFacets -h* will show the usage description.
 
 ## Targets and Items
 RetrieveDataCiteFacets is designed to answer questions about several kinds of *targets*, specifically resourceTypes, relationTypes, contributorTypes, or creator affiliations (a special case). *Targets* are groups of *items* defined by DataCite codelists. To see the *items* included in each *target*, use the --showtargets flag to display all *target items*.  
@@ -104,7 +104,7 @@ As the program runs the python logging package is used to provide timestamps as 
 ```
 
 ### --showURLs
-The --showURLs flag can be used to display the URLs that will be retrieved for a given set of flags without running the program. This can be used for testing or if you are curious about how the queries are done.
+The --showURLs flag can be used to display the URLs that will be retrieved for a given set of flags without retrieving the data. This can be used for testing or if you are curious about how the queries are done.
 
 ### File Output
 
@@ -129,6 +129,9 @@ Each DataCite API queries returns data for 18 facets covering many aspects of Da
 Sometimes it is hard to remember what kind of target a particular target is or you might need a small selection of items from several targets to answer some interesting questions. In this case, use the item list (-il) option. For example **python retrieveDataCiteFacets.py -il DataManager InteractiveResource Book** retrieves facet counts for records that have contributorType="Data Manager" or "resourceTypeGeneral="InteractiveResource" or "resourceTypeGeneral="Books".  
 
 *Keep in mind that these three criteria are completely independent, these are all separate queries.*
+
+### Selecting Affiliations
+The affiliations target is special because it is controlled by specific user needs rather than a DataCite controlled vocabulary. It was designed to enable discovery of where DataCite resources from particular organizations were published. Using this option requires editing the code to create your own list of affiliations. See the affiliations.data item in the parameter dictionary. 
  
 ## Selecting facets
 Each DataCite API queries returns data for 18 facets covering many aspects of DataCite usage. Many times this can cause information overload! If you are answering specific questions, you may need only a small number of these facets. For example, if you are only interested in the number of records, the "states" facet is all you need: **python retrieveDataCiteFacets.py -il DataManager InteractiveResource Book -fl states --pout** gives the samll result:  
