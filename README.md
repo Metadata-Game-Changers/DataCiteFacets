@@ -4,6 +4,7 @@ The [DataCite Metadata Schema](https://schema.datacite.org/meta/kernel-4.4/) has
 A facet is a metadata element, usually from a controlled list, that provides counts of records in a query result with particular values for the metadata element. The [DataCite JSON Response](https://blog.datacite.org/introducing-datacite-json/) includes data on a variety of facets for each query done using the DataCite API. This tool retrieves those facets for a variety of queries and summarizes the results.
 
 ## Usage
+**Use python retrieveDataCiteFacets.py -h to see this usage description.**
 
 ```
 usage: retrieveDataCiteFacets [-h] [-il [ITEMLIST ...]] [-fl [FACETLIST ...]] [--affiliations] [--contributors] [--relations] [--resources] [--showURLs] [--showtargets] [--csvout] [--dbout] [--jout] [--pout]
