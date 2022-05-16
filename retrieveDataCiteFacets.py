@@ -7,7 +7,60 @@ import argparse
 import logging
 import requests
 import os
-#from numpy import append
+import numpy as np
+
+def dataframeToHTML(df):
+    #
+    # Dict used to format columns of the dataframe
+    #
+    t  = dict(selector="table", props=[('border','1px solid black'),('width','100%')])
+    th = dict(selector="th", props=[('border','1px solid black'),('border-collapse','collapse'),('padding','5px'),('font-family','Century Gothic')])
+    td = dict(selector="td", props=[('border','1px solid black'),('border-collapse','collapse'),('padding','5px'),('font-family','Century Gothic')])
+ 
+    html_df = df.copy()         # create a copy of df to be written to HTML to avoid changing the content of df
+    html_df.fillna(0, inplace=True)         # replace nan values with 0's
+    
+    for c in html_df.columns:               # adjust column types
+        if c.endswith(('NumberOfRecords','_number','_max','_total')):       # integer columns
+            html_df[c] = html_df[c].astype(int)
+        if c.endswith('_HI'):
+            html_df[c] = html_df[c].astype(float)                           # float column
+
+    float_col_mask = html_df.columns.str.endswith('_HI')
+    int_col_mask   = html_df.columns.str.endswith(('NumberOfRecords','_number','_max','_total'))
+
+    color_col_mask = float_col_mask | int_col_mask
+
+     # define the styles and render
+    return html_df.style.set_properties(subset=html_df.columns[color_col_mask], # center the numeric columns
+                            **{'text-align':'center'})\
+            .set_properties(subset=html_df.columns[~color_col_mask], # left-align the non-numeric columns
+                            **{'text-align':'left'})\
+            .format(lambda x: '{:,.0f}'.format(x) if x > 1e3 else '{:.0%}'.format(x), # format _HI as %
+                            subset=pd.IndexSlice[:,html_df.columns[float_col_mask]])\
+            .format(lambda x: '{0:d}'.format(x), subset=pd.IndexSlice[:,html_df.columns[int_col_mask]])\
+            .set_table_styles([t,th,td]).hide(axis="index")\
+            .apply(colorScale,subset=html_df.columns[float_col_mask])\
+            .apply(highlight_max,subset=html_df.columns[int_col_mask]).to_html()
+
+
+def colorScale(s):
+    '''
+        Highlight table cells with floating point numbers red (<0.000005), lightGreen (> 0.99999), or yellow
+    '''
+    return   ['' if not isinstance(v,float) \
+        else 'background-color: lightPink' if v < 0.000005 \
+        else 'background-color: lightGreen' if v > 0.99999 \
+        else 'background-color: yellow' for v in s]
+        
+
+def highlight_max(s):
+    '''
+        This function highlights the maximum value in a column of an HTML table lightGreen.
+    '''
+    is_max = s == s.max()
+    return ['background-color: lightGreen' if v else '' for v in is_max]
+
 
 def connectToDataCiteDatabase():
     '''
@@ -197,6 +250,10 @@ commandLine.add_argument('--dbout', dest='dbout',
                         default=False, action='store_true',
                         help='Output results in database (requires sqlite3 package)'
 )
+commandLine.add_argument('--htmlout', dest='htmlout', 
+                        default=False, action='store_true',
+                        help='Output results in HTML file'
+)
 commandLine.add_argument('--jout', dest='jout', 
                         default=False, action='store_true',
                         help='Output retrieved metadata in json files'
@@ -317,16 +374,23 @@ for target in set(targets):                         # loop through targets
 
 item_df = pd.DataFrame(d_list) # create dataframe
 
+if args.csvout:                                 # output data to csv
+    outputFile = 'DataCite_' + '_'.join(set(targets)) + '__' + dateStamp + '.csv'
+    lggr.info(f'facet count output to {outputFile}')
+    item_df.to_csv(outputFile,encoding='utf-8',sep=',',index=False)
+    
 if args.dbout:                                  # add data to database
     import sqlite3                              # get sqlite3 package
     con, cur = connectToDataCiteDatabase()      # connect to database for output
     databaseTableName = 'relationsAndResources'
     item_df.to_sql(databaseTableName,con,if_exists='append',index=False)
 
-if args.csvout:                                 # output data to csv
-    outputFile = 'DataCite_' + '_'.join(set(targets)) + '__' + dateStamp + '.csv'
+if args.htmlout:                                 # output data to html
+    outputFile = 'DataCite_' + '_'.join(set(targets)) + '__' + dateStamp + '.html'
     lggr.info(f'facet count output to {outputFile}')
-    item_df.to_csv(outputFile,encoding='utf-8',sep=',',index=False)
+    html_output = dataframeToHTML(item_df)
+    with open(outputFile, 'w') as f:
+        print(html_output, file=f)
 
 if args.pout:                                       # print facet counts to screen
                                                     # this produces VERY UGLY screen output that may work 

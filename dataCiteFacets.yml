@@ -5,6 +5,7 @@ channels:
 dependencies:
   - bzip2=1.0.8=h0d85af4_4
   - ca-certificates=2021.10.8=h033912b_0
+  - jinja2=3.1.2=pyhd8ed1ab_0
   - libblas=3.9.0=14_osx64_openblas
   - libcblas=3.9.0=14_osx64_openblas
   - libcxx=14.0.3=hc203e6f_0
@@ -34,6 +35,7 @@ dependencies:
     - certifi==2021.10.8
     - charset-normalizer==2.0.12
     - idna==3.3
+    - markupsafe==2.1.1
     - numpy==1.22.3
     - pandas==1.4.2
     - requests==2.27.1
