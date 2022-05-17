@@ -62,6 +62,42 @@ def highlight_max(s):
     return ['background-color: lightGreen' if v else '' for v in is_max]
 
 
+def addHTMLOutput(s,outputFile):
+    '''Add output to html file'''
+    with open(outputFile, 'a') as f:
+        f.write(s)
+
+
+def addHTMLHeader(f):
+    '''
+        Write command line options to html header
+    '''
+    s = ''
+
+    if args.getRelations:                       # the target retrievals can be controlled by command line arguments:
+        s += f"<b>Relations:</b> {' '.join(parameters['relations']['data'])}<br>"             # --affiliations --contributors --relations --resources retrieve all 
+
+    if args.getResources:                       # items in each list, i.e. all relationTypes...
+        s += f"<b>Resources:</b> {' '.join(parameters['resources']['data'])}<br>"
+
+    if args.getContributorTypes:
+        s += f"<b>Contributor Types:</b> {' '.join(parameters['contributors']['data'])}<br>"
+
+    if args.getAffiliations:
+        s += f"<b>Affiliations:</b> {' '.join(parameters['affiliations']['data'])}<br>"
+
+    if args.itemList:
+        s += f"<b>Item list:</b> {' '.join(args.itemList)}<br>"
+
+    if args.facetList:
+        s += f"<b>Facet list:</b> {' '.join(args.facetList)}<br>"
+    else:
+        s += f"<b>Facet list:</b> {facets}<br>"
+
+    f.write(s)
+
+
+
 def connectToDataCiteDatabase():
     '''
        make connection to sqlite database, a file defined as an environment variable
@@ -194,6 +230,7 @@ facets = ['states','resourceTypes','created','published','registered','providers
               'affiliations','prefixes','certificates','licenses','schemaVersions','linkChecksStatus',
               'subjects','fieldsOfScience','citations','views','downloads']
 
+
 commandLine=argparse.ArgumentParser(prog='retrieveDataCiteFacets',
                         description='''Use DataCite API to retrieve metadata records for given relationType, resourceType, 
                                     contributorType, and affiliations from DataCite. Save the retrieved metadata into
@@ -290,6 +327,22 @@ lggr = logging.getLogger('retrieveDataCiteFacets')
 current_time = datetime.datetime.now()
 dateStamp = f'{current_time.year}{current_time.month:02d}{current_time.day:02d}_{current_time.hour:02d}'
 
+#
+# Create html header and footer
+#
+startHTML = '''<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>DataCite Facet Summary</title>
+</head>
+<style>body { font-family: "Calibri" }</style>
+<body>
+<h1>DataCite Facet Summary</h1>
+'''
+
+endHTML = f'<hr><i>Report created {dateStamp} by <a href="https://github.com/Metadata-Game-Changers/DataCiteFacets">retrieveDataCiteFacets</a> from <a href="https://metadatagamechangers.com">Metadata Game Changers</a></i></body></html>'
+
 homeDir = os.path.expanduser('~')
 
 if args.showTargetData:                 # list items for each target
@@ -324,6 +377,12 @@ if len(targets) == 0:
     exit()
 else:
     lggr.info(f'Targets: {targets}')
+
+if args.htmlout:                                 # initialize HTML output
+    htmlOutputFile = 'DataCite_' + '_'.join(set(targets)) + '__' + dateStamp + '.html'
+    with open(htmlOutputFile, 'w') as f:
+        f.write(startHTML)
+        addHTMLHeader(f)
 
 d_list = []                                         # initialize list of dictionaries
 
@@ -386,11 +445,10 @@ if args.dbout:                                  # add data to database
     item_df.to_sql(databaseTableName,con,if_exists='append',index=False)
 
 if args.htmlout:                                 # output data to html
-    outputFile = 'DataCite_' + '_'.join(set(targets)) + '__' + dateStamp + '.html'
-    lggr.info(f'facet count output to {outputFile}')
+    lggr.info(f'facet count output to {htmlOutputFile}')
     html_output = dataframeToHTML(item_df)
-    with open(outputFile, 'w') as f:
-        print(html_output, file=f)
+    addHTMLOutput(html_output,htmlOutputFile)
+    addHTMLOutput(endHTML,htmlOutputFile)
 
 if args.pout:                                       # print facet counts to screen
                                                     # this produces VERY UGLY screen output that may work 
