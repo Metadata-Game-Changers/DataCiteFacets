@@ -395,9 +395,9 @@ for target in set(targets):                         # loop through targets
             continue
 
         if target == 'affiliations':                # add wildcards to affiliation
-            item = item.replace(' ','*') + '*'
-
-        URL = parameters[target]['url'] + item
+            URL = parameters[target]['url'] + item.replace(' ','*') + '*'
+        else:
+            URL = parameters[target]['url'] + item
 
         if args.showURLs:                       # display URL to be retrieved without retrieving data
             lggr.info(f'URL: {URL}')
