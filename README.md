@@ -7,29 +7,27 @@ A facet is a metadata element, usually from a controlled list, that provides cou
 **Use python retrieveDataCiteFacets.py -h to see this usage description.**
 
 ```
-usage: retrieveDataCiteFacets [-h] [-il [ITEMLIST ...]] [-fl [FACETLIST ...]] [--affiliations] [--contributors] [--relations] [--resources] [--showURLs] [--showtargets] [--csvout] [--dbout] [--htmlout]
-                              [--jout] [--pout] [--loglevel {debug,info,warning}] [--logto FILE]
+usage: retrieveDataCiteFacets [-h] [-al [AFFILIATIONLIST ...]] [-il [ITEMLIST ...]] [-fl [FACETLIST ...]] [--contributors] [--relations] [--resources] [--showURLs] [--showtargets] [--csvout] [--dbout] [--htmlout] [--jout] [--pout]
+                              [--loglevel {debug,info,warning}] [--logto FILE]
 
-Use DataCite API to retrieve metadata records for given relationType, resourceType, contributorType, and affiliations from DataCite. Save the retrieved metadata into json files (--jout) and facet data into
-csv file or database (defined in environment).
+Use DataCite API to retrieve metadata records for given relationType, resourceType, contributorType, and affiliations from DataCite. Save the retrieved metadata into json files (--jout) and facet data into csv or html file or database (defined in environment).
 
 options:
   -h, --help            show this help message and exit
+  -al [AFFILIATIONLIST ...], --affiliationList [AFFILIATIONLIST ...]
+                        space separated list of affiliations to retrieve (affiliations with spaces in quotes)
   -il [ITEMLIST ...], --itemList [ITEMLIST ...]
-                        list of items to retrieve
+                        space separated list of items to retrieve
   -fl [FACETLIST ...], --facetList [FACETLIST ...]
-                        Select list of facets to retrieve from: states resourceTypes created published registered providers clients affiliations prefixes certificates licenses schemaVersions
-                        linkChecksStatus subjects fieldsOfScience citations views downloads. Default = all
-  --affiliations        Retrieve facets for Affiliations, e.g.: "Cornell University", "University of Minnesota", "Duke University", "University of Michigan", "Washington University in St. Louis", "Virginia
-                        Tech"
-  --contributors        Retrieve facets for all contributorTypes: ContactPerson, DataCollector, DataCurator, DataManager, Distributor, Editor, HostingInstitution, Other, Producer, ProjectLeader,
-                        ProjectManager, ProjectMember, RegistrationAgency, RegistrationAuthority, RelatedPerson, ResearchGroup, RightsHolder, Researcher, Sponsor, Supervisor, WorkPackageLeader
-  --relations           Retrieve facets for all relations: IsCitedBy, Cites, IsSupplementTo, IsSupplementedBy, IsContinuedBy, Continues, IsNewVersionOf, IsPreviousVersionOf, IsPartOf, HasPart,
-                        IsPublishedIn, IsReferencedBy, References, IsDocumentedBy, Documents, IsCompiledBy, Compiles, IsVariantFormOf, IsOriginalFormOf, IsIdenticalTo, HasMetadata, IsMetadataFor, Reviews,
-                        IsReviewedBy, IsDerivedFrom, IsSourceOf, Describes, IsDescribedBy, HasVersion, IsVersionOf, Requires, IsRequiredBy, Obsoletes, IsObsoletedBy
-  --resources           Retrieve facets for all resource types: Audiovisual, Book, BookChapter, Collection, ComputationalNotebook, ConferencePaper, ConferenceProceeding, DataPaper, Dataset, Dissertation,
-                        Event, Image, InteractiveResource, Journal, JournalArticle, Model, OutputManagementPlan, PeerReview, PhysicalObject, Preprint, Report, Service, Software, Sound, Standard, Text,
-                        Workflow, Other
+                        Select list of facets to retrieve from: states resourceTypes created published registered providers clients affiliations prefixes certificates licenses schemaVersions linkChecksStatus subjects fieldsOfScience
+                        citations views downloads. Default = all
+  --contributors        Retrieve facets for all contributorTypes: ContactPerson, DataCollector, DataCurator, DataManager, Distributor, Editor, HostingInstitution, Other, Producer, ProjectLeader, ProjectManager, ProjectMember,
+                        RegistrationAgency, RegistrationAuthority, RelatedPerson, ResearchGroup, RightsHolder, Researcher, Sponsor, Supervisor, WorkPackageLeader
+  --relations           Retrieve facets for all relations: IsCitedBy, Cites, IsSupplementTo, IsSupplementedBy, IsContinuedBy, Continues, IsNewVersionOf, IsPreviousVersionOf, IsPartOf, HasPart, IsPublishedIn, IsReferencedBy, References,
+                        IsDocumentedBy, Documents, IsCompiledBy, Compiles, IsVariantFormOf, IsOriginalFormOf, IsIdenticalTo, HasMetadata, IsMetadataFor, Reviews, IsReviewedBy, IsDerivedFrom, IsSourceOf, Describes, IsDescribedBy,
+                        HasVersion, IsVersionOf, Requires, IsRequiredBy, Obsoletes, IsObsoletedBy
+  --resources           Retrieve facets for all resource types: Audiovisual, Book, BookChapter, Collection, ComputationalNotebook, ConferencePaper, ConferenceProceeding, DataPaper, Dataset, Dissertation, Event, Image, InteractiveResource,
+                        Journal, JournalArticle, Model, OutputManagementPlan, PeerReview, PhysicalObject, Preprint, Report, Service, Software, Sound, Standard, Text, Workflow, Other
   --showURLs            Show URLs that will be retrieved but DO NOT retrieve metadata
   --showtargets         Show target lists (e.g. all resourceTypes, relationTypes, contributorTypes)
   --csvout              Output results in CSV file
@@ -39,7 +37,7 @@ options:
   --pout                Output facet counts to terminal (requires tabulate package https://pypi.org/project/tabulate/)
   --loglevel {debug,info,warning}
                         Logging level for logging module (https://docs.python.org/3/howto/logging.html#useful-handlers)
-  --logto FILE          Log file (will append to file if exists)  
+  --logto FILE          Log file (will append to file if exists)
 ```
 
 # Environment
@@ -60,12 +58,11 @@ Target: contributors
 ['ContactPerson', 'DataCollector', 'DataCurator', 'DataManager', 'Distributor', 'Editor', 'HostingInstitution', 'Other', 'Producer', 'ProjectLeader', 'ProjectManager', 'ProjectMember', 'RegistrationAgency', 'RegistrationAuthority', 'RelatedPerson', 'ResearchGroup', 'RightsHolder', 'Researcher', 'Sponsor', 'Supervisor', 'WorkPackageLeader']
 
 Target: affiliations  
-['Cornell University', 'University of Minnesota', 'Duke University', 'University of Michigan', 'Washington University in St. Louis', 'Virginia Tech']
+Affiliations set from command line -al option with space separated list of affiliations to retrieve (affiliations with spaces in quotes).
 
 Facets 
 ['states', 'resourceTypes', 'created', 'published', 'registered', 'providers', 'clients', 'affiliations', 'prefixes', 'certificates', 'licenses', 'schemaVersions', 'linkChecksStatus', 'subjects', 'fieldsOfScience', 'citations', 'views', 'downloads']
 
-*Note: the affiliations items shown here are an example of an affiliation target that includes several Universities. This list is defined in the code and needs to be modified to include the affiliation strings you need to search for.*
 
 # Outputs
 As described above, the facet results are returned from the query as a list of dictionaries that include ids, titles, and values. As an example, this is the list of dictionaries for clients (repositories) that use the PhysicalObject resourceType:
@@ -124,10 +121,11 @@ Each DataCite API queries returns data for 18 facets covering many aspects of Da
 # Selecting items
 
 ##Command line options provide shortcuts to select all of the items in a target:
-| Flag  | Selection| Flag  | Selection|
-|:-------- |:------| :-------- |:------| 
-| --affiliations | query all affiliations|--relations | query all relationTypes|
-| --contributors | query all contributorTypes |--relations | query all resourceTypes|
+| Flag  | Selection|
+|:-------- |:------|
+|--contributors | query all contributorTypes|
+|--relations | query all relationTypes|
+|--resources | query all resourceTypes|
 
 ## Select items from different targets
 Sometimes it is hard to remember what kind of target a particular target is or you might need a small selection of items from several targets to answer some interesting questions. In this case, use the item list (-il) option. For example **python retrieveDataCiteFacets.py -il DataManager InteractiveResource Book** retrieves facet counts for records that have contributorType="Data Manager" or "resourceTypeGeneral="InteractiveResource" or "resourceTypeGeneral="Books".  
@@ -135,8 +133,8 @@ Sometimes it is hard to remember what kind of target a particular target is or y
 *Keep in mind that these three criteria are completely independent, these are all separate queries.*
 
 ## Selecting Affiliations
-The affiliations target is special because it is controlled by specific user needs rather than a DataCite controlled vocabulary. It was designed to enable discovery of where DataCite resources from particular organizations were published. Using this option requires editing the code to create your own list of affiliations. See the affiliations.data item in the parameter dictionary. 
- 
+The affiliations target is special because it is controlled by specific user needs rather than a DataCite controlled vocabulary. It was designed to enable discovery of where DataCite resources with affiliations for particular organizations were published. Using this option requires specifying your own space separated list of affiliations to retrieve (affiliations with spaces in quotes).
+
 # Selecting facets
 Each DataCite API queries returns data for 18 facets covering many aspects of DataCite usage. Many times this can cause information overload! If you are answering specific questions, you may need only a small number of these facets. For example, if you are only interested in the number of records, the "states" facet is all you need: **python retrieveDataCiteFacets.py -il DataManager InteractiveResource Book -fl states --pout** gives the small result:  
 

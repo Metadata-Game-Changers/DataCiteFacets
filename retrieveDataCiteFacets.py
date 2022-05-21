@@ -83,8 +83,8 @@ def addHTMLHeader(f):
     if args.getContributorTypes:
         s += f"<b>Contributor Types:</b> {' '.join(parameters['contributors']['data'])}<br>"
 
-    if args.getAffiliations:
-        s += f"<b>Affiliations:</b> {' '.join(parameters['affiliations']['data'])}<br>"
+    if args.affiliationList:
+        s += f"<b>Affiliations:</b> {', '.join(parameters['affiliations']['data'])}<br>"
 
     if args.itemList:
         s += f"<b>Item list:</b> {' '.join(args.itemList)}<br>"
@@ -221,7 +221,7 @@ parameters = {
         "url": 'https://api.datacite.org/dois?query=contributors.contributorType:'
     },
     "affiliations": {
-        "data": ['Cornell University', 'University of Minnesota', 'Duke University', 'University of Michigan', 'Washington University in St. Louis', 'Virginia Tech'],
+        "data": [],
         "url": 'https://api.datacite.org/dois?query=creators.affiliation.name:*'
     }
 }
@@ -234,20 +234,18 @@ facets = ['states','resourceTypes','created','published','registered','providers
 commandLine=argparse.ArgumentParser(prog='retrieveDataCiteFacets',
                         description='''Use DataCite API to retrieve metadata records for given relationType, resourceType, 
                                     contributorType, and affiliations from DataCite. Save the retrieved metadata into
-                                    json files (--jout) and facet data into csv file or database (defined in environment).'''
+                                    json files (--jout) and facet data into csv or html file or database (defined in environment).'''
+)
+commandLine.add_argument("-al", "--affiliationList", nargs="*", type=str,
+                        help='space separated list of affiliations to retrieve (affiliations with spaces in quotes)', default=[]
 )
 commandLine.add_argument("-il", "--itemList", nargs="*", type=str,
-                        help='list of items to retrieve', default=[]
+                        help='space separated list of items to retrieve', default=[]
 )
 commandLine.add_argument("-fl", "--facetList", nargs="*", type=str, default=[],
-                        help='''Select list of facets to retrieve from: states resourceTypes created published registered providers clients
+                        help='''Select space separated list of facets to retrieve from: states resourceTypes created published registered providers clients
                                 affiliations prefixes certificates licenses schemaVersions linkChecksStatus
                                 subjects fieldsOfScience citations views downloads. Default = all'''
-)
-commandLine.add_argument('--affiliations', dest='getAffiliations', 
-                        default=False, action='store_true',
-                        help='''Retrieve facets for Affiliations, e.g.: "Cornell University", "University of Minnesota", "Duke University",
-                                "University of Michigan", "Washington University in St. Louis", "Virginia Tech"'''
 )
 commandLine.add_argument('--contributors', dest='getContributorTypes', 
                         default=False, action='store_true',
@@ -346,8 +344,9 @@ endHTML = f'<hr><i>Report created {dateStamp} by <a href="https://github.com/Met
 homeDir = os.path.expanduser('~')
 
 if args.showTargetData:                 # list items for each target
-    for t in  list(parameters):
-        print(f"\nTarget {t} ({len(parameters[t]['data'])}) items:\n{parameters[t]['data']}")
+    for t in list(parameters):
+        if len(parameters[t]['data']) > 0:
+            print(f"\nTarget {t} ({len(parameters[t]['data'])}) items:\n{parameters[t]['data']}")
     print(f'\nFacets ({len(facets)}) items:\n{facets}')
     exit()
 
@@ -362,8 +361,9 @@ if args.getRelations:                       # the target retrievals can be contr
     targets.append('relations')             # --affiliations --contributors --relations --resources retrieve all 
 if args.getResources:                       # items in each list, i.e. all relationTypes...
     targets.append('resources')
-if args.getAffiliations:
+if args.affiliationList:
     targets.append('affiliations')
+    parameters['affiliations']['data'] = args.affiliationList       # set affiliation list from -al argument
 if args.getContributorTypes:
     targets.append('contributors')
 
