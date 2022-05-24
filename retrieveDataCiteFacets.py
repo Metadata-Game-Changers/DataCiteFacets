@@ -8,8 +8,41 @@ import logging
 import requests
 import os
 import numpy as np
+import re
 
-def dataframeToHTML(df):
+def writeHTMLOutput(output:str,                         # output file name
+                    df:pd.core.frame.DataFrame,         # dataframe
+                    simple:bool                         # flag for simple html
+                 ):
+    '''
+        Write a dataframe to an HTML file
+    '''
+    #
+    # Define html header and footer
+    #
+    startHTML = '''<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8" />
+        <title>DataCite Facet Summary</title>
+    </head>
+    <style>body { font-family: "Calibri" }</style>
+    <body>
+    <h1>DataCite Facet Summary</h1>
+    '''
+
+    endHTML = f'<hr><i>Report created {dateStamp} by <a href="https://github.com/Metadata-Game-Changers/DataCiteFacets">retrieveDataCiteFacets</a> from <a href="https://metadatagamechangers.com">Metadata Game Changers</a></i></body></html>'
+
+    with open(output, 'w') as f:
+        f.write(startHTML)
+        addHTMLHeader(f)
+        html_output = dataframeToHTML(df,simple)
+        f.write(html_output)
+        f.write(endHTML)
+
+
+def dataframeToHTML(df:pd.core.frame.DataFrame,
+                    simple:bool):
     #
     # Dict used to format columns of the dataframe
     #
@@ -17,8 +50,13 @@ def dataframeToHTML(df):
     th = dict(selector="th", props=[('border','1px solid black'),('border-collapse','collapse'),('padding','5px'),('font-family','Century Gothic')])
     td = dict(selector="td", props=[('border','1px solid black'),('border-collapse','collapse'),('padding','5px'),('font-family','Century Gothic')])
  
-    html_df = df.copy()         # create a copy of df to be written to HTML to avoid changing the content of df
+    html_df = df.copy()                     # create a copy of df to be written to HTML to avoid changing the content of df
     html_df.fillna(0, inplace=True)         # replace nan values with 0's
+
+    if simple:              # output simple HTML (no highlights)
+        for c in [x for x in html_df.columns if html_df[x].dtype == float]:   # adjust column types (float > int)
+            html_df[c] = html_df[c].astype(int)
+        return html_df.style.set_table_styles([t,th,td]).hide(axis="index").to_html()
     
     for c in html_df.columns:               # adjust column types
         if c.endswith(('NumberOfRecords','_number','_max','_total')):       # integer columns
@@ -62,12 +100,6 @@ def highlight_max(s):
     return ['background-color: lightGreen' if v else '' for v in is_max]
 
 
-def addHTMLOutput(s,outputFile):
-    '''Add output to html file'''
-    with open(outputFile, 'a') as f:
-        f.write(s)
-
-
 def addHTMLHeader(f):
     '''
         Write command line options to html header
@@ -97,7 +129,6 @@ def addHTMLHeader(f):
     f.write(s)
 
 
-
 def connectToDataCiteDatabase():
     '''
        make connection to sqlite database, a file defined as an environment variable
@@ -119,6 +150,32 @@ def createCountStringFromListOfDictionaries(l:list                  # list of pr
     s = ", ".join([d['title'].replace(',',';') + ' (' + str(d['count']) + ')' for d in l])
  
     return s
+
+
+def createDictionaryFromCountString(s: str)-> dict:
+    '''
+        Convert a count string like Aalto University (69), University of Lapland (8)
+        into a dictionary like {'Aalto University':69, 'University of Lapland':8}
+    '''
+    if not isinstance(s,str):
+        return
+
+    d_ = {}
+    pc = re.compile('^(?P<value>.*?)\((?P<count>[0-9]+?)\)$')
+    
+    items = s.replace(' ','').split(',')
+    for i in items:
+        m = re.match(pc, i)
+        if m is None:
+            print(f'No match: {i}')
+            continue
+        md = m.groupdict()
+        if md['value'] is not None:
+            d_[md['value']] = int(md['count'])
+        else:
+            d_[md['None']] = int(md['count'])
+        
+    return d_
 
 
 def retrieveMetadata(URL:str                            # DataCite API URL
@@ -285,6 +342,10 @@ commandLine.add_argument('--dbout', dest='dbout',
                         default=False, action='store_true',
                         help='Output results in database (requires sqlite3 package)'
 )
+commandLine.add_argument('--facetdata', dest='facetdata', 
+                        default=False, action='store_true',
+                        help='Create dataframe from facet data'
+)
 commandLine.add_argument('--htmlout', dest='htmlout', 
                         default=False, action='store_true',
                         help='Output results in HTML file'
@@ -325,22 +386,6 @@ lggr = logging.getLogger('retrieveDataCiteFacets')
 current_time = datetime.datetime.now()
 dateStamp = f'{current_time.year}{current_time.month:02d}{current_time.day:02d}_{current_time.hour:02d}'
 
-#
-# Create html header and footer
-#
-startHTML = '''<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <title>DataCite Facet Summary</title>
-</head>
-<style>body { font-family: "Calibri" }</style>
-<body>
-<h1>DataCite Facet Summary</h1>
-'''
-
-endHTML = f'<hr><i>Report created {dateStamp} by <a href="https://github.com/Metadata-Game-Changers/DataCiteFacets">retrieveDataCiteFacets</a> from <a href="https://metadatagamechangers.com">Metadata Game Changers</a></i></body></html>'
-
 homeDir = os.path.expanduser('~')
 
 if args.showTargetData:                 # list items for each target
@@ -378,11 +423,6 @@ if len(targets) == 0:
 else:
     lggr.info(f'Targets: {targets}')
 
-if args.htmlout:                                 # initialize HTML output
-    htmlOutputFile = 'DataCite_' + '_'.join(set(targets)) + '__' + dateStamp + '.html'
-    with open(htmlOutputFile, 'w') as f:
-        f.write(startHTML)
-        addHTMLHeader(f)
 
 d_list = []                                         # initialize list of dictionaries
 
@@ -428,10 +468,29 @@ for target in set(targets):                         # loop through targets
         else:
             facetList = facets
 
-        d_dict =  createFacetsDictionary(facetList,item, dateStamp, numberOfRecords, item_json)
+        d_dict = createFacetsDictionary(facetList,item, dateStamp, numberOfRecords, item_json)
         d_list.append(d_dict)
 
 item_df = pd.DataFrame(d_list) # create dataframe
+
+if args.facetdata:                               # create and output facet data
+    for facet in args.facetList:
+        data_l = []
+        for i in item_df.index:
+            data_d = {'id':item_df.loc[i,'Id']}
+            data_d.update(createDictionaryFromCountString(item_df.loc[i,facet]))
+            data_l.append(data_d)
+                        
+        facet_df = pd.DataFrame(data_l)
+
+        outputFile = 'DataCite_' + '_'.join(set(targets)) + '_' + facet + '__' + dateStamp + '.csv'
+        lggr.info(f'facet data output to {outputFile}')
+        facet_df.to_csv(outputFile,encoding='utf-8',sep=',',index=False)
+
+        if args.htmlout:                                 # output data to html
+            htmlOutputFile = 'DataCite_' + '_'.join(set(targets)) + '_' + facet + '__' + dateStamp + '.html'
+            lggr.info(f'facet data output to {htmlOutputFile}')
+            writeHTMLOutput(htmlOutputFile,facet_df,True)        
 
 if args.csvout:                                 # output data to csv
     outputFile = 'DataCite_' + '_'.join(set(targets)) + '__' + dateStamp + '.csv'
@@ -445,10 +504,9 @@ if args.dbout:                                  # add data to database
     item_df.to_sql(databaseTableName,con,if_exists='append',index=False)
 
 if args.htmlout:                                 # output data to html
+    htmlOutputFile = 'DataCite_' + '_'.join(set(targets)) + '__' + dateStamp + '.html'
     lggr.info(f'facet count output to {htmlOutputFile}')
-    html_output = dataframeToHTML(item_df)
-    addHTMLOutput(html_output,htmlOutputFile)
-    addHTMLOutput(endHTML,htmlOutputFile)
+    writeHTMLOutput(htmlOutputFile,item_df,False)
 
 if args.pout:                                       # print facet counts to screen
                                                     # this produces VERY UGLY screen output that may work 
