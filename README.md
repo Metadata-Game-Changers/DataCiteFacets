@@ -7,10 +7,11 @@ A facet is a metadata element, usually from a controlled list, that provides cou
 **Use python retrieveDataCiteFacets.py -h to see this usage description.**
 
 ```
-usage: retrieveDataCiteFacets [-h] [-al [AFFILIATIONLIST ...]] [-il [ITEMLIST ...]] [-fl [FACETLIST ...]] [--contributors] [--relations] [--resources] [--showURLs] [--showtargets] [--csvout] [--dbout] [--htmlout] [--jout] [--pout]
-                              [--loglevel {debug,info,warning}] [--logto FILE]
+usage: retrieveDataCiteFacets [-h] [-al [AFFILIATIONLIST ...]] [-il [ITEMLIST ...]] [-fl [FACETLIST ...]] [--contributors] [--relations] [--resources] [--showURLs] [--showtargets] [--csvout]
+                              [--dbout] [--facetdata] [--htmlout] [--jout] [--pout] [--loglevel {debug,info,warning}] [--logto FILE]
 
-Use DataCite API to retrieve metadata records for given relationType, resourceType, contributorType, and affiliations from DataCite. Save the retrieved metadata into json files (--jout) and facet data into csv or html file or database (defined in environment).
+Use DataCite API to retrieve metadata records for given relationType, resourceType, contributorType, and affiliations from DataCite. Save the retrieved metadata into json files (--jout) and facet
+data into csv or html file or database (defined in environment).
 
 options:
   -h, --help            show this help message and exit
@@ -19,19 +20,21 @@ options:
   -il [ITEMLIST ...], --itemList [ITEMLIST ...]
                         space separated list of items to retrieve
   -fl [FACETLIST ...], --facetList [FACETLIST ...]
-                        Select list of facets to retrieve from: states resourceTypes created published registered providers clients affiliations prefixes certificates licenses schemaVersions linkChecksStatus subjects fieldsOfScience
-                        citations views downloads. Default = all
-  --contributors        Retrieve facets for all contributorTypes: ContactPerson, DataCollector, DataCurator, DataManager, Distributor, Editor, HostingInstitution, Other, Producer, ProjectLeader, ProjectManager, ProjectMember,
-                        RegistrationAgency, RegistrationAuthority, RelatedPerson, ResearchGroup, RightsHolder, Researcher, Sponsor, Supervisor, WorkPackageLeader
-  --relations           Retrieve facets for all relations: IsCitedBy, Cites, IsSupplementTo, IsSupplementedBy, IsContinuedBy, Continues, IsNewVersionOf, IsPreviousVersionOf, IsPartOf, HasPart, IsPublishedIn, IsReferencedBy, References,
-                        IsDocumentedBy, Documents, IsCompiledBy, Compiles, IsVariantFormOf, IsOriginalFormOf, IsIdenticalTo, HasMetadata, IsMetadataFor, Reviews, IsReviewedBy, IsDerivedFrom, IsSourceOf, Describes, IsDescribedBy,
-                        HasVersion, IsVersionOf, Requires, IsRequiredBy, Obsoletes, IsObsoletedBy
-  --resources           Retrieve facets for all resource types: Audiovisual, Book, BookChapter, Collection, ComputationalNotebook, ConferencePaper, ConferenceProceeding, DataPaper, Dataset, Dissertation, Event, Image, InteractiveResource,
-                        Journal, JournalArticle, Model, OutputManagementPlan, PeerReview, PhysicalObject, Preprint, Report, Service, Software, Sound, Standard, Text, Workflow, Other
+                        Select space separated list of facets to retrieve from: states resourceTypes created published registered providers clients affiliations prefixes certificates licenses
+                        schemaVersions linkChecksStatus subjects fieldsOfScience citations views downloads. Default = all
+  --contributors        Retrieve facets for all contributorTypes: ContactPerson, DataCollector, DataCurator, DataManager, Distributor, Editor, HostingInstitution, Other, Producer, ProjectLeader,
+                        ProjectManager, ProjectMember, RegistrationAgency, RegistrationAuthority, RelatedPerson, ResearchGroup, RightsHolder, Researcher, Sponsor, Supervisor, WorkPackageLeader
+  --relations           Retrieve facets for all relations: IsCitedBy, Cites, IsSupplementTo, IsSupplementedBy, IsContinuedBy, Continues, IsNewVersionOf, IsPreviousVersionOf, IsPartOf, HasPart,
+                        IsPublishedIn, IsReferencedBy, References, IsDocumentedBy, Documents, IsCompiledBy, Compiles, IsVariantFormOf, IsOriginalFormOf, IsIdenticalTo, HasMetadata, IsMetadataFor,
+                        Reviews, IsReviewedBy, IsDerivedFrom, IsSourceOf, Describes, IsDescribedBy, HasVersion, IsVersionOf, Requires, IsRequiredBy, Obsoletes, IsObsoletedBy
+  --resources           Retrieve facets for all resource types: Audiovisual, Book, BookChapter, Collection, ComputationalNotebook, ConferencePaper, ConferenceProceeding, DataPaper, Dataset,
+                        Dissertation, Event, Image, InteractiveResource, Journal, JournalArticle, Model, OutputManagementPlan, PeerReview, PhysicalObject, Preprint, Report, Service, Software, Sound,
+                        Standard, Text, Workflow, Other
   --showURLs            Show URLs that will be retrieved but DO NOT retrieve metadata
   --showtargets         Show target lists (e.g. all resourceTypes, relationTypes, contributorTypes)
   --csvout              Output results in CSV file
   --dbout               Output results in database (requires sqlite3 package)
+  --facetdata           Create dataframe from facet data
   --htmlout             Output results in HTML file
   --jout                Output retrieved metadata in json files
   --pout                Output facet counts to terminal (requires tabulate package https://pypi.org/project/tabulate/)
@@ -114,6 +117,7 @@ Each DataCite API queries returns data for 18 facets covering many aspects of Da
 |:-------- |:------|
 | --csvout | Output the data as comma-separated values (csv) into a file named *DataCite\_target1_target2\_\_dateStamp.csv* where taregt1\_target2 is an underscore separated list of the targets being retrieved. Each row contains three header columns (item id, DateTime (YYYYMMDD\_HH), and NumberOfRecords in complete query result) and then five columns/facet with names that correspond to the statistics described above. The names have the form facet\_statistic do, for the clients facet, the columns are clients\_number, clients\_max, clients\_common, clients\_total, clients\_HI, and clients (a string representation of the result).|
 | --dbout |Output the data into a sqlite database in a file defined by the environment variable DATACITE\_STATISTICS\_DATABASE. The name of the database table is given by the variable _databaseTableName_. The structure of this query is defined in *createTable.sql*.|
+| --facetdata |Output facet data (i.e. counts/facet) into an HTML file named *DataCite\_target1_target2\_facet\_\_dateStamp.csv*.|
 | --htmlout |Output the data into an HTML file named *DataCite\_target1_target2\_\_dateStamp.csv*. Maximum values in each column are highted green and the \_HI colum is highlighted red for values < 0.000005, green for values > 0.99999, or yellow for other values.|
 |--pout|This option writes output to the terminal in the format of a github markdown table using the *tabulate* python package. This format is unusable in most cases, but it can provide an easy quick look for limited query results.|
 |--jout|This option writes the json query results into files in the directory *homeDir/data/DataCite/metadata/target__dateStamp/json. The files are named item.json with spaces replaced by '\_'.|
