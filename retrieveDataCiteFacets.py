@@ -61,10 +61,10 @@ def dataframeToHTML(df:pd.core.frame.DataFrame,
     for c in html_df.columns:               # adjust column types
         if c.endswith(('NumberOfRecords','_number','_max','_total')):       # integer columns
             html_df[c] = html_df[c].astype(int)
-        if c.endswith('_HI'):
+        if c.endswith(('_HI','_coverage')):
             html_df[c] = html_df[c].astype(float)                           # float column
 
-    float_col_mask = html_df.columns.str.endswith('_HI')
+    float_col_mask = html_df.columns.str.endswith(('_HI','_coverage'))
     int_col_mask   = html_df.columns.str.endswith(('NumberOfRecords','_number','_max','_total'))
 
     color_col_mask = float_col_mask | int_col_mask
@@ -248,6 +248,7 @@ def  createFacetsDictionary(facetList: list,                # list of facets e.g
                                             if d['count'] == d_dict[f + '_max']])           # value with max count
                 d_dict[f + '_total'] = sum([d['count'] for d in item_json['meta'][f]])      # add total for facet
                 d_dict[f + '_HI'] = d_dict[f + '_max'] /  d_dict[f + '_total']              # add total for facet
+                d_dict[f + '_coverage'] = d_dict[f + '_total'] / numberOfRecords             # %coverage of top 10 for facet
                 output = createCountStringFromListOfDictionaries(item_json['meta'][f])
                 d_dict[f] = output # add count string to dictionary
 
