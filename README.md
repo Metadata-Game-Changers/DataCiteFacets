@@ -94,6 +94,7 @@ The json query responses can be saved directly using the **json output (-jout)**
 |common|The client with the most resources|fao.itpgrfa|
 |total|The total number of resources in the top 10|1390569|
 |homogeneity|An indicator of homogeneity of the list (0.1 = uniform, 1.0 = single item)|78%|
+|coverage|The % of all records in the query result covered by the top 10 (numbers close to 100% are good)|
 
 ## Terminal Output
 As the program runs the python logging package is used to provide timestamps as well as information about queries that are being run and the number of results.
