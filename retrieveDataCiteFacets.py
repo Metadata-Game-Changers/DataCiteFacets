@@ -115,6 +115,9 @@ def addHTMLHeader(f):
     if args.getContributorTypes:
         s += f"<b>Contributor Types:</b> {' '.join(parameters['contributors']['data'])}<br>"
 
+    if args.getYears:
+        s += f"<b>Years:</b> {' '.join(parameters['years']['data'])}<br>"
+
     if args.affiliationList:
         s += f"<b>Affiliations:</b> {', '.join(parameters['affiliations']['data'])}<br>"
 
@@ -281,6 +284,10 @@ parameters = {
     "affiliations": {
         "data": [],
         "url": 'https://api.datacite.org/dois?query=creators.affiliation.name:*'
+    },
+    "years": {
+        "data": [],
+        "url": 'https://api.datacite.org/dois?registered='
     }
 }
 
@@ -326,6 +333,10 @@ commandLine.add_argument('--resources', dest='getResources',
                                 ConferencePaper, ConferenceProceeding, DataPaper, Dataset, Dissertation, Event, Image, 
                                 InteractiveResource, Journal, JournalArticle, Model, OutputManagementPlan, PeerReview,
                                 PhysicalObject, Preprint, Report, Service, Software, Sound, Standard, Text, Workflow, Other'''
+)
+commandLine.add_argument('--years', dest='getYears', 
+                        default=False, action='store_true',
+                        help='''Retrieve facets for all years: 2004 to present'''
 )
 commandLine.add_argument('--showURLs', dest='showURLs', 
                         default=False, action='store_true',
@@ -389,6 +400,8 @@ dateStamp = f'{current_time.year}{current_time.month:02d}{current_time.day:02d}_
 
 homeDir = os.path.expanduser('~')
 
+parameters['years']['data'] = list(map(str, range(2004,current_time.year + 1))) 
+
 if args.showTargetData:                 # list items for each target
     for t in list(parameters):
         if len(parameters[t]['data']) > 0:
@@ -412,6 +425,9 @@ if args.affiliationList:
     parameters['affiliations']['data'] = args.affiliationList       # set affiliation list from -al argument
 if args.getContributorTypes:
     targets.append('contributors')
+if args.getYears:
+    targets.append('years')
+
 
 for i in args.itemList:                     # targets can also be listed as items on the command line if only
     for t in list(parameters):              # a small number of targets are needed. For example, -il Workflow
