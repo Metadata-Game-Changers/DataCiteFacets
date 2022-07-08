@@ -256,8 +256,9 @@ def  createFacetsDictionary(facetList: list,                # list of facets e.g
                 d_dict[f + '_common'] = ', '.join([d['id'] for d in item_json['meta'][f] \
                                             if d['count'] == d_dict[f + '_max']])           # value with max count
                 d_dict[f + '_total'] = sum([d['count'] for d in item_json['meta'][f]])      # add total for facet
-                d_dict[f + '_HI'] = d_dict[f + '_max'] /  d_dict[f + '_total']              # add total for facet
-                d_dict[f + '_coverage'] = d_dict[f + '_total'] / numberOfRecords             # %coverage of top 10 for facet
+                # d_dict[f + '_HI'] = d_dict[f + '_max'] /  d_dict[f + '_total']            # add HI 
+                d_dict[f + '_HI'] = d_dict[f + '_max'] /  numberOfRecords                   # add HI (max/number of records) 20220708
+                d_dict[f + '_coverage'] = d_dict[f + '_total'] / numberOfRecords            # %coverage of top 10 for facet
                 output = createCountStringFromListOfDictionaries(item_json['meta'][f], args.useIDAsTitle)
                 d_dict[f] = output # add count string to dictionary
 
