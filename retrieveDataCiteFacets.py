@@ -142,7 +142,8 @@ def connectToDataCiteDatabase():
     return(con,cur)
 
 
-def createCountStringFromListOfDictionaries(l:list                  # list of property dictionaries ({})
+def createCountStringFromListOfDictionaries(l:list,                 # list of property dictionaries ({})
+                                            useID:bool              # use repository id instead of name as title
                                             )->str:
     '''
         Make a list of counts from DataCite list of property dictionaries (l)
@@ -150,7 +151,12 @@ def createCountStringFromListOfDictionaries(l:list                  # list of pr
         The list has the form title1 (count1), title2 (count2), ...
     '''
     s = ''
-    s = ", ".join([d['title'].replace(',',';') + ' (' + str(d['count']) + ')' for d in l])
+    
+    if useID:                           # use repository id as column title 
+        s = ", ".join([d['id'] + ' (' + str(d['count']) + ')' for d in l])
+    else:                               # use repository name as column title (default)
+        s = ", ".join([d['title'].replace(',',';') + ' (' + str(d['count']) + ')' for d in l])
+    
  
     return s
 
@@ -252,7 +258,7 @@ def  createFacetsDictionary(facetList: list,                # list of facets e.g
                 d_dict[f + '_total'] = sum([d['count'] for d in item_json['meta'][f]])      # add total for facet
                 d_dict[f + '_HI'] = d_dict[f + '_max'] /  d_dict[f + '_total']              # add total for facet
                 d_dict[f + '_coverage'] = d_dict[f + '_total'] / numberOfRecords             # %coverage of top 10 for facet
-                output = createCountStringFromListOfDictionaries(item_json['meta'][f])
+                output = createCountStringFromListOfDictionaries(item_json['meta'][f], args.useIDAsTitle)
                 d_dict[f] = output # add count string to dictionary
 
     return d_dict # return facet dictionary for item
@@ -357,6 +363,10 @@ commandLine.add_argument('--dbout', dest='dbout',
 commandLine.add_argument('--facetdata', dest='facetdata', 
                         default=False, action='store_true',
                         help='Create dataframe from facet data'
+)
+commandLine.add_argument('--id', dest='useIDAsTitle', 
+                        default=False, action='store_true',
+                        help='Use repository ID as column name instead of repository name'
 )
 commandLine.add_argument('--htmlout', dest='htmlout', 
                         default=False, action='store_true',
