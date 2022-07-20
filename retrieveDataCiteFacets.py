@@ -282,7 +282,7 @@ parameters = {
         "url":  'https://api.datacite.org/dois?&page[size]=1&resource-type-id='
     },
     "contributors": {
-        "data": ['ContactPerson','DataCollector','DataCurator','DataManager','Distributor','Editor',
+        "data": ['ContactPerson','DataCollector','DataCurator','DataManager','Distributor','Editor', 'Funder',
                     'HostingInstitution','Other','Producer','ProjectLeader','ProjectManager','ProjectMember',
                     'RegistrationAgency','RegistrationAuthority','RelatedPerson','ResearchGroup','RightsHolder',
                     'Researcher','Sponsor','Supervisor','WorkPackageLeader'],
@@ -322,7 +322,7 @@ commandLine.add_argument("-fl", "--facetList", nargs="*", type=str, default=[],
 commandLine.add_argument('--contributors', dest='getContributorTypes', 
                         default=False, action='store_true',
                         help='''Retrieve facets for all contributorTypes: ContactPerson, DataCollector, DataCurator, 
-                                DataManager, Distributor, Editor, HostingInstitution, Other, Producer, ProjectLeader,
+                                DataManager, Distributor, Editor, Funder, HostingInstitution, Other, Producer, ProjectLeader,
                                 ProjectManager, ProjectMember, RegistrationAgency, RegistrationAuthority, RelatedPerson,
                                 ResearchGroup, RightsHolder, Researcher, Sponsor, Supervisor, WorkPackageLeader'''
 )

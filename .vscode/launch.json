@@ -13,13 +13,18 @@
             "justMyCode": true,
             "cwd":"/Users/metadatagamechanger/Metadata/DataCite/statistics",
             "args": [
-                "-il",
-                "Book",
+                "-al",
+                "Cornell University",
+                "University of Minnesota"
                 "-fl",
-                "registered",
-                "--htmlout",
-                "--csvout",
-                "--facetdata"
+                "clients"
+                "-il",
+                "Dataset",
+                "Software",
+                "--years"
+//                "--htmlout",
+//                "--csvout",
+//                "--facetdata"
             ]
         }
     ]
