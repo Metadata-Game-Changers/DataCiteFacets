@@ -5,6 +5,7 @@ import pandas as pd
 import sys
 import argparse
 import logging
+from regex import D
 import requests
 import os
 import numpy as np
@@ -463,77 +464,74 @@ if len(targets) == 0:
 else:
     lggr.info(f'Targets: {targets}')
 
-URL_l = []
+URL_l = []                                  
+param_l = []
+
 if args.combineQueries:
-    parameterList = []
+    URLParameterLists = []
     for target in ['relations', 'resources', 'contributors']:
         parameters[target]['data'] = [parameters[target]['queryString'] + x for x in parameters[target]['data'] if x in args.itemList]
         if len(parameters[target]['data']) > 0:
-            parameterList.append(parameters[target]['data'])
+            URLParameterLists.append(parameters[target]['data'])
     
     target = 'affiliations'
     if len(parameters[target]['data']) > 0:
         parameters[target]['data'] = [parameters[target]['queryString'] + x.replace(' ','*') + '*' for x in parameters[target]['data']]
-        parameterList.append(parameters[target]['data'])
+        URLParameterLists.append(parameters[target]['data'])
 
     target = 'years'
     if len(parameters[target]['data']) > 0:
         parameters[target]['data'] = [parameters[target]['queryString'] + x for x in parameters[target]['data']]
-        parameterList.append(parameters[target]['data'])
+        URLParameterLists.append(parameters[target]['data'])
 
-    for u in list(itertools.product(*parameterList)):
+    for u in list(itertools.product(*URLParameterLists)):
         URL_l.append('https://api.datacite.org/dois?&page[size]=1&' + '&'.join(u))
+else:                       # simple queries
+    for target in set(targets):                         # loop through targets
+        lggr.debug(f'target')
+        for item in parameters[target]['data']:         # loop items in target data
+            if target == 'affiliations':                # add wildcards to affiliation
+                URL_l.append(parameters[target]['url'] + item.replace(' ','*') + '*')
+            else:
+                URL_l.append(parameters[target]['url'] + item)
 
-    print(f"URL List: {len(URL_l)} items")
-    print('\n'.join(URL_l))
-    exit()
+lggr.info(f"URL List: {len(URL_l)} items")
+print('\n'.join(URL_l))
 
 d_list = []                                         # initialize list of dictionaries
 
-for target in set(targets):                         # loop through targets
-    lggr.debug(f'target')
+for URL in URL_l:         # loop items in target data
+    if args.showURLs:                       # display URL to be retrieved without retrieving data
+        lggr.info(f'URL: {URL}')
+        continue
 
-    for item in parameters[target]['data']:         # loop items in target data
+    res = retrieveMetadata(URL)             # retrieve metadata from DataCite
+    item_json = res.json()
 
-        if len(args.itemList) > 0 and not item in args.itemList:    # skip items not in itemList
-            continue
+    if args.jout:           # write json to file in directory home/data/DataCite/metadata/
+                            # the file name includes item__datestamp
+        jsonDirectory = homeDir + '/data/DataCite/metadata/' + target + '__' + dateStamp + '/json'
+        os.makedirs(jsonDirectory, exist_ok = True)
+        jsonFile = jsonDirectory + '/' + item.replace(' ','_') + '.json'
+        lggr.info(f'{item} json output to {jsonFile}')
+        with open(jsonFile,'w') as outf:
+            json.dump(item_json, outf, ensure_ascii=False)
 
-        if target == 'affiliations':                # add wildcards to affiliation
-            URL = parameters[target]['url'] + item.replace(' ','*') + '*'
-        else:
-            URL = parameters[target]['url'] + item
+    numberOfRecords = item_json.get('meta').get('total')
+    if numberOfRecords == 0:
+        continue
 
-        if args.showURLs:                       # display URL to be retrieved without retrieving data
-            lggr.info(f'URL: {URL}')
-            continue
+    itemCount += 1
+    if itemCount % itemInterval == 0:
+        lggr.info(f'Count: {itemCount} target: {target} URL: {URL} Number of records: {numberOfRecords}')
 
-        res = retrieveMetadata(URL)             # retrieve metadata from DataCite
-        item_json = res.json()
+    if args.facetList:
+        facetList = args.facetList
+    else:
+        facetList = facets
 
-        if args.jout:           # write json to file in directory home/data/DataCite/metadata/
-                                # the file name includes item__datestamp
-            jsonDirectory = homeDir + '/data/DataCite/metadata/' + target + '__' + dateStamp + '/json'
-            os.makedirs(jsonDirectory, exist_ok = True)
-            jsonFile = jsonDirectory + '/' + item.replace(' ','_') + '.json'
-            lggr.info(f'{item} json output to {jsonFile}')
-            with open(jsonFile,'w') as outf:
-                json.dump(item_json, outf, ensure_ascii=False)
-
-        numberOfRecords = item_json.get('meta').get('total')
-        if numberOfRecords == 0:
-            continue
-
-        itemCount += 1
-        if itemCount % itemInterval == 0:
-            lggr.info(f'Count: {itemCount} target: {target} URL: {URL} Number of records: {numberOfRecords}')
-
-        if args.facetList:
-            facetList = args.facetList
-        else:
-            facetList = facets
-
-        d_dict = createFacetsDictionary(facetList,item, dateStamp, numberOfRecords, item_json)
-        d_list.append(d_dict)
+    d_dict = createFacetsDictionary(facetList, item, dateStamp, numberOfRecords, item_json)
+    d_list.append(d_dict)
 
 item_df = pd.DataFrame(d_list) # create dataframe
 

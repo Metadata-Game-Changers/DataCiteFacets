@@ -17,12 +17,17 @@
                 "Cornell University",
                 "University of Minnesota"
                 "-fl",
-                "clients"
+                "clients",
+                "--relations",
+                "--resources",
                 "-il",
                 "Dataset",
                 "Software",
-                "DataCurator"
-                "--years"
+//                "DataCurator",
+                "--years",
+                "-minYear",
+                "2013",
+                "--combineQueries"
 //                "--htmlout",
 //                "--csvout",
 //                "--facetdata"
