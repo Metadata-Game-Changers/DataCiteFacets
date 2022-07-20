@@ -9,6 +9,7 @@ import requests
 import os
 import numpy as np
 import re
+import itertools
 
 def writeHTMLOutput(output:str,                         # output file name
                     df:pd.core.frame.DataFrame,         # dataframe
@@ -272,13 +273,15 @@ parameters = {
              'IsOriginalFormOf', 'IsIdenticalTo', 'HasMetadata', 'IsMetadataFor', 'Reviews', 'IsReviewedBy', \
              'IsDerivedFrom', 'IsSourceOf', 'Describes', 'IsDescribedBy', 'HasVersion', 'IsVersionOf', 'Requires', \
              'IsRequiredBy', 'Obsoletes', 'IsObsoletedBy'],
-        "url":  'https://api.datacite.org/dois?&page[size]=1&query=relatedIdentifiers.relationType:'
+        "queryString": 'query=relatedIdentifiers.relationType:',
+        "url":  'https://api.datacite.org/dois?&page[size]=1&query=relatedIdentifiers.relationType:' 
     },
     "resources": {
         "data": ['Audiovisual','Book','BookChapter','Collection','ComputationalNotebook','ConferencePaper',\
                  'ConferenceProceeding','DataPaper','Dataset','Dissertation','Event','Image','InteractiveResource',\
                  'Journal','JournalArticle','Model','OutputManagementPlan','PeerReview','PhysicalObject','Preprint',\
                  'Report','Service','Software','Sound','Standard','Text','Workflow','Other'],
+        "queryString": 'resource-type-id=',
         "url":  'https://api.datacite.org/dois?&page[size]=1&resource-type-id='
     },
     "contributors": {
@@ -286,14 +289,17 @@ parameters = {
                     'HostingInstitution','Other','Producer','ProjectLeader','ProjectManager','ProjectMember',
                     'RegistrationAgency','RegistrationAuthority','RelatedPerson','ResearchGroup','RightsHolder',
                     'Researcher','Sponsor','Supervisor','WorkPackageLeader'],
+        "queryString": 'query=contributors.contributorType:',
         "url": 'https://api.datacite.org/dois?query=contributors.contributorType:'
     },
     "affiliations": {
         "data": [],
+        "queryString": 'query=creators.affiliation.name:*',
         "url": 'https://api.datacite.org/dois?query=creators.affiliation.name:*'
     },
     "years": {
         "data": [],
+        "queryString": 'registered=',
         "url": 'https://api.datacite.org/dois?registered='
     }
 }
@@ -345,6 +351,10 @@ commandLine.add_argument('--years', dest='getYears',
                         default=False, action='store_true',
                         help='''Retrieve facets for all years: 2004 to present'''
 )
+commandLine.add_argument('-minYear', dest='minYear', type=int,
+                        default=2004,
+                        help='''Minimum year for year queries'''
+)
 commandLine.add_argument('--showURLs', dest='showURLs', 
                         default=False, action='store_true',
                         help='''Show URLs that will be retrieved but DO NOT retrieve metadata'''
@@ -352,6 +362,10 @@ commandLine.add_argument('--showURLs', dest='showURLs',
 commandLine.add_argument('--showtargets', dest='showTargetData', 
                         default=False, action='store_true',
                         help='''Show target lists (e.g. all resourceTypes, relationTypes, contributorTypes)'''
+)
+commandLine.add_argument('--combineQueries', dest='combineQueries', 
+                        default=False, action='store_true',
+                        help='Run all query parameter combinations'
 )
 commandLine.add_argument('--csvout', dest='csvout', 
                         default=False, action='store_true',
@@ -411,15 +425,6 @@ dateStamp = f'{current_time.year}{current_time.month:02d}{current_time.day:02d}_
 
 homeDir = os.path.expanduser('~')
 
-parameters['years']['data'] = list(map(str, range(2004,current_time.year + 1))) 
-
-if args.showTargetData:                 # list items for each target
-    for t in list(parameters):
-        if len(parameters[t]['data']) > 0:
-            print(f"\nTarget {t} ({len(parameters[t]['data'])}) items:\n{parameters[t]['data']}")
-    print(f'\nFacets ({len(facets)}) items:\n{facets}')
-    exit()
-
 lggr.info(f'*********************************** retrieveRelationandResourceCounts {dateStamp}')
 
 itemCount = 0
@@ -431,17 +436,24 @@ if args.getRelations:                       # the target retrievals can be contr
     targets.append('relations')             # --affiliations --contributors --relations --resources retrieve all 
 if args.getResources:                       # items in each list, i.e. all relationTypes...
     targets.append('resources')
+if args.getContributorTypes:
+    targets.append('contributors')
 if args.affiliationList:
     targets.append('affiliations')
     parameters['affiliations']['data'] = args.affiliationList       # set affiliation list from -al argument
-if args.getContributorTypes:
-    targets.append('contributors')
 if args.getYears:
     targets.append('years')
+    parameters['years']['data'] = list(map(str, range(args.minYear,current_time.year + 1))) 
 
+if args.showTargetData:                 # list items for each target
+    for t in list(parameters):
+        if len(parameters[t]['data']) > 0:
+            print(f"\nTarget {t} ({len(parameters[t]['data'])}) items:\n{parameters[t]['data']}")
+    print(f'\nFacets ({len(facets)}) items:\n{facets}')
+    exit()
 
-for i in args.itemList:                     # targets can also be listed as items on the command line if only
-    for t in list(parameters):              # a small number of targets are needed. For example, -il Workflow
+for i in args.itemList:                     # targets can also be listed as items on the command line
+    for t in list(parameters):              # if only a small number of targets are needed. For example, -il Workflow
         if i in parameters[t]['data']:      # will retrieve data for just Workflow (a resource type)
             targets.append(t)
 
@@ -451,6 +463,30 @@ if len(targets) == 0:
 else:
     lggr.info(f'Targets: {targets}')
 
+URL_l = []
+if args.combineQueries:
+    parameterList = []
+    for target in ['relations', 'resources', 'contributors']:
+        parameters[target]['data'] = [parameters[target]['queryString'] + x for x in parameters[target]['data'] if x in args.itemList]
+        if len(parameters[target]['data']) > 0:
+            parameterList.append(parameters[target]['data'])
+    
+    target = 'affiliations'
+    if len(parameters[target]['data']) > 0:
+        parameters[target]['data'] = [parameters[target]['queryString'] + x.replace(' ','*') + '*' for x in parameters[target]['data']]
+        parameterList.append(parameters[target]['data'])
+
+    target = 'years'
+    if len(parameters[target]['data']) > 0:
+        parameters[target]['data'] = [parameters[target]['queryString'] + x for x in parameters[target]['data']]
+        parameterList.append(parameters[target]['data'])
+
+    for u in list(itertools.product(*parameterList)):
+        URL_l.append('https://api.datacite.org/dois?&page[size]=1&' + '&'.join(u))
+
+    print(f"URL List: {len(URL_l)} items")
+    print('\n'.join(URL_l))
+    exit()
 
 d_list = []                                         # initialize list of dictionaries
 

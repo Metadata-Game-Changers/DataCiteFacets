@@ -21,6 +21,7 @@
                 "-il",
                 "Dataset",
                 "Software",
+                "DataCurator"
                 "--years"
 //                "--htmlout",
 //                "--csvout",
