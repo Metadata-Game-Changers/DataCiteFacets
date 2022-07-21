@@ -15,7 +15,7 @@
             "args": [
                 "-al",
                 "Cornell University",
-                "University of Minnesota"
+                "University of Minnesota",
                 "-fl",
                 "clients",
                 "--relations",

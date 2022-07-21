@@ -5,7 +5,6 @@ import pandas as pd
 import sys
 import argparse
 import logging
-from regex import D
 import requests
 import os
 import numpy as np
@@ -242,7 +241,7 @@ def  createFacetsDictionary(facetList: list,                # list of facets e.g
     #
     # initialize facets dictionary
     #
-    d_dict = {'Id': item, 'DateTime': dateStamp, 'NumberOfRecords': numberOfRecords}
+    d_dict = {'Id': '_'.join(item), 'DateTime': dateStamp, 'NumberOfRecords': numberOfRecords}
     
     numberOfFacets = 0
     for f in facetList:    # loop facets
@@ -428,8 +427,8 @@ homeDir = os.path.expanduser('~')
 
 lggr.info(f'*********************************** retrieveRelationandResourceCounts {dateStamp}')
 
-itemCount = 0
-itemInterval = 1
+urlCount = 0
+urlInterval = 1
 
 targets = []                                
                                             
@@ -466,26 +465,36 @@ else:
 
 URL_l = []                                  
 param_l = []
+url_parameters = []
 
 if args.combineQueries:
-    URLParameterLists = []
     for target in ['relations', 'resources', 'contributors']:
-        parameters[target]['data'] = [parameters[target]['queryString'] + x for x in parameters[target]['data'] if x in args.itemList]
+        parameters[target]['data'] = [x for x in parameters[target]['data'] if x in args.itemList]
+        url_parameters = [parameters[target]['queryString'] + x for x in parameters[target]['data']]
         if len(parameters[target]['data']) > 0:
-            URLParameterLists.append(parameters[target]['data'])
+            param_l.append(parameters[target]['data'])
+            URL_l.append(url_parameters)
     
     target = 'affiliations'
     if len(parameters[target]['data']) > 0:
-        parameters[target]['data'] = [parameters[target]['queryString'] + x.replace(' ','*') + '*' for x in parameters[target]['data']]
-        URLParameterLists.append(parameters[target]['data'])
+        parameters[target]['data'] = [x for x in parameters[target]['data']]
+        url_parameters = [parameters[target]['queryString'] + x.replace(' ','*') + '*' for x in parameters[target]['data']]
+        param_l.append(parameters[target]['data'])
+        URL_l.append(url_parameters)
 
     target = 'years'
     if len(parameters[target]['data']) > 0:
-        parameters[target]['data'] = [parameters[target]['queryString'] + x for x in parameters[target]['data']]
-        URLParameterLists.append(parameters[target]['data'])
+        parameters[target]['data'] = [x for x in parameters[target]['data']]
+        url_parameters = [parameters[target]['queryString'] + x for x in parameters[target]['data']]
+        param_l.append(parameters[target]['data'])
+        URL_l.append(url_parameters)
 
-    for u in list(itertools.product(*URLParameterLists)):
-        URL_l.append('https://api.datacite.org/dois?&page[size]=1&' + '&'.join(u))
+    URL_List = []
+    param_List = []
+    for u in list(itertools.product(*URL_l)):
+        URL_List.append('https://api.datacite.org/dois?&page[size]=1&' + '&'.join(u))
+    for p in list(itertools.product(*param_l)):
+        param_List = list(itertools.product(*param_l))
 else:                       # simple queries
     for target in set(targets):                         # loop through targets
         lggr.debug(f'target')
@@ -495,24 +504,25 @@ else:                       # simple queries
             else:
                 URL_l.append(parameters[target]['url'] + item)
 
-lggr.info(f"URL List: {len(URL_l)} items")
-print('\n'.join(URL_l))
+lggr.info(f"URL List: {len(URL_List)} items")
+print('\n'.join(URL_List))
 
-d_list = []                                         # initialize list of dictionaries
+d_list = []                                # initialize list of dictionaries
 
-for URL in URL_l:         # loop items in target data
+for u,p in zip(URL_List, param_List):     # loop items in target data
+
     if args.showURLs:                       # display URL to be retrieved without retrieving data
-        lggr.info(f'URL: {URL}')
+        lggr.info(f'URL: {u} Parameters:{p}')
         continue
 
-    res = retrieveMetadata(URL)             # retrieve metadata from DataCite
+    res = retrieveMetadata(u)             # retrieve metadata from DataCite
     item_json = res.json()
 
     if args.jout:           # write json to file in directory home/data/DataCite/metadata/
                             # the file name includes item__datestamp
-        jsonDirectory = homeDir + '/data/DataCite/metadata/' + target + '__' + dateStamp + '/json'
+        jsonDirectory = homeDir + '/data/DataCite/metadata/' + '_'.join(p) + '__' + dateStamp + '/json'
         os.makedirs(jsonDirectory, exist_ok = True)
-        jsonFile = jsonDirectory + '/' + item.replace(' ','_') + '.json'
+        jsonFile = jsonDirectory + '/' + '_'.join(p) + '.json'
         lggr.info(f'{item} json output to {jsonFile}')
         with open(jsonFile,'w') as outf:
             json.dump(item_json, outf, ensure_ascii=False)
@@ -521,16 +531,16 @@ for URL in URL_l:         # loop items in target data
     if numberOfRecords == 0:
         continue
 
-    itemCount += 1
-    if itemCount % itemInterval == 0:
-        lggr.info(f'Count: {itemCount} target: {target} URL: {URL} Number of records: {numberOfRecords}')
+    urlCount += 1
+    if urlCount % urlInterval == 0:
+        lggr.info(f'Count: {urlCount} URL: {u} Parameters: {p} Number of records: {numberOfRecords}')
 
     if args.facetList:
         facetList = args.facetList
     else:
         facetList = facets
 
-    d_dict = createFacetsDictionary(facetList, item, dateStamp, numberOfRecords, item_json)
+    d_dict = createFacetsDictionary(facetList, p, dateStamp, numberOfRecords, item_json)
     d_list.append(d_dict)
 
 item_df = pd.DataFrame(d_list) # create dataframe
