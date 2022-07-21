@@ -10,6 +10,7 @@ import os
 import numpy as np
 import re
 import itertools
+import copy
 
 def writeHTMLOutput(output:str,                         # output file name
                     df:pd.core.frame.DataFrame,         # dataframe
@@ -241,7 +242,14 @@ def  createFacetsDictionary(facetList: list,                # list of facets e.g
     #
     # initialize facets dictionary
     #
-    d_dict = {'Id': '_'.join(item), 'DateTime': dateStamp, 'NumberOfRecords': numberOfRecords}
+    d_dict = {}
+    if len(item) == 1:
+        d_dict.update({'parameter':item[0]})
+    else:
+        for i in range(len(item)):
+            d_dict.update({'parameter ' + str(i+1): item[i]})
+
+    d_dict.update({'DateTime': dateStamp, 'NumberOfRecords': numberOfRecords})
     
     numberOfFacets = 0
     for f in facetList:    # loop facets
@@ -558,6 +566,7 @@ for u,p in zip(URL_List, param_List):     # loop items in target data
 
     numberOfRecords = item_json.get('meta').get('total')
     if numberOfRecords == 0:
+        lggr.info(f'Count: {urlCount} URL: {u} Parameters: {p} Number of records: {numberOfRecords}')
         continue
 
     urlCount += 1
@@ -578,9 +587,12 @@ if args.facetdata:                               # create and output facet data
     for facet in args.facetList:
         data_l = []
         for i in item_df.index:
-            data_d = {'id':item_df.loc[i,'Id']}
+            data_d = {}
+            for p in [x for x in item_df.columns if x.startswith('parameter')]:
+                data_d.update({p: item_df.loc[i,p]})
+#            data_d = {'id':item_df.loc[i,'Id']}
             data_d.update(createDictionaryFromCountString(item_df.loc[i,facet]))
-            data_l.append(data_d)
+            data_l.append(copy.deepcopy(data_d))
                         
         facet_df = pd.DataFrame(data_l)
 

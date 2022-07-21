@@ -13,24 +13,26 @@
             "justMyCode": true,
             "cwd":"/Users/metadatagamechanger/ProjectsAndPlans/RADS/affiliationFacets",
             "args": [
-//                "-al",
-//                "Cornell University",
+                "-al",
+                "Cornell University",
 //                "University of Minnesota",
 //                "-fl",
 //                "published",
-                "--relations",
-                "--resources",
-//                "-il",
-//                "Dataset",
-//                "Software",
+//                "--relations",
+//                "--resources",
+                "-fl",
+                    "clients",
+                "-il",
+                "Dataset",
+                "Software",
 //                "DataCurator",
-                "--years",
+//                "--years",
 //                "-minYear",
-//                "2013",
-//                "--combineQueries",
+//                "2021",
+                "--combineQueries",
 //                "--htmlout",
 //                "--csvout",
-//                "--facetdata"
+                "--facetdata"
             ]
         }
     ]
