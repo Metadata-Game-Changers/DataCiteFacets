@@ -11,20 +11,28 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "cwd":"/Users/metadatagamechanger/Metadata/DataCite/statistics",
+            "cwd":"/Users/metadatagamechanger/ProjectsAndPlans/RADS/affiliationFacets",
             "args": [
                 "-al",
                 "Cornell University",
-                "University of Minnesota"
+//                "University of Minnesota",
+//                "-fl",
+//                "published",
+//                "--relations",
+//                "--resources",
                 "-fl",
-                "clients"
+                    "clients",
                 "-il",
                 "Dataset",
                 "Software",
-                "--years"
+//                "DataCurator",
+//                "--years",
+//                "-minYear",
+//                "2021",
+                "--combineQueries",
 //                "--htmlout",
 //                "--csvout",
-//                "--facetdata"
+                "--facetdata"
             ]
         }
     ]

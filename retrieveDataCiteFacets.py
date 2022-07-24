@@ -9,6 +9,8 @@ import requests
 import os
 import numpy as np
 import re
+import itertools
+import copy
 
 def writeHTMLOutput(output:str,                         # output file name
                     df:pd.core.frame.DataFrame,         # dataframe
@@ -240,7 +242,14 @@ def  createFacetsDictionary(facetList: list,                # list of facets e.g
     #
     # initialize facets dictionary
     #
-    d_dict = {'Id': item, 'DateTime': dateStamp, 'NumberOfRecords': numberOfRecords}
+    d_dict = {}
+    if len(item) == 1:
+        d_dict.update({'parameter':item[0]})
+    else:
+        for i in range(len(item)):
+            d_dict.update({'parameter ' + str(i+1): item[i]})
+
+    d_dict.update({'DateTime': dateStamp, 'NumberOfRecords': numberOfRecords})
     
     numberOfFacets = 0
     for f in facetList:    # loop facets
@@ -272,13 +281,15 @@ parameters = {
              'IsOriginalFormOf', 'IsIdenticalTo', 'HasMetadata', 'IsMetadataFor', 'Reviews', 'IsReviewedBy', \
              'IsDerivedFrom', 'IsSourceOf', 'Describes', 'IsDescribedBy', 'HasVersion', 'IsVersionOf', 'Requires', \
              'IsRequiredBy', 'Obsoletes', 'IsObsoletedBy'],
-        "url":  'https://api.datacite.org/dois?&page[size]=1&query=relatedIdentifiers.relationType:'
+        "queryString": 'query=relatedIdentifiers.relationType:',
+        "url":  'https://api.datacite.org/dois?&page[size]=1&query=relatedIdentifiers.relationType:' 
     },
     "resources": {
         "data": ['Audiovisual','Book','BookChapter','Collection','ComputationalNotebook','ConferencePaper',\
                  'ConferenceProceeding','DataPaper','Dataset','Dissertation','Event','Image','InteractiveResource',\
                  'Journal','JournalArticle','Model','OutputManagementPlan','PeerReview','PhysicalObject','Preprint',\
                  'Report','Service','Software','Sound','Standard','Text','Workflow','Other'],
+        "queryString": 'resource-type-id=',
         "url":  'https://api.datacite.org/dois?&page[size]=1&resource-type-id='
     },
     "contributors": {
@@ -286,14 +297,17 @@ parameters = {
                     'HostingInstitution','Other','Producer','ProjectLeader','ProjectManager','ProjectMember',
                     'RegistrationAgency','RegistrationAuthority','RelatedPerson','ResearchGroup','RightsHolder',
                     'Researcher','Sponsor','Supervisor','WorkPackageLeader'],
+        "queryString": 'query=contributors.contributorType:',
         "url": 'https://api.datacite.org/dois?query=contributors.contributorType:'
     },
     "affiliations": {
         "data": [],
+        "queryString": 'query=creators.affiliation.name:*',
         "url": 'https://api.datacite.org/dois?query=creators.affiliation.name:*'
     },
     "years": {
         "data": [],
+        "queryString": 'registered=',
         "url": 'https://api.datacite.org/dois?registered='
     }
 }
@@ -345,6 +359,10 @@ commandLine.add_argument('--years', dest='getYears',
                         default=False, action='store_true',
                         help='''Retrieve facets for all years: 2004 to present'''
 )
+commandLine.add_argument('-minYear', dest='minYear', type=int,
+                        default=2004,
+                        help='''Minimum year for year queries'''
+)
 commandLine.add_argument('--showURLs', dest='showURLs', 
                         default=False, action='store_true',
                         help='''Show URLs that will be retrieved but DO NOT retrieve metadata'''
@@ -352,6 +370,10 @@ commandLine.add_argument('--showURLs', dest='showURLs',
 commandLine.add_argument('--showtargets', dest='showTargetData', 
                         default=False, action='store_true',
                         help='''Show target lists (e.g. all resourceTypes, relationTypes, contributorTypes)'''
+)
+commandLine.add_argument('--combineQueries', dest='combineQueries', 
+                        default=False, action='store_true',
+                        help='Run all query parameter combinations'
 )
 commandLine.add_argument('--csvout', dest='csvout', 
                         default=False, action='store_true',
@@ -411,7 +433,25 @@ dateStamp = f'{current_time.year}{current_time.month:02d}{current_time.day:02d}_
 
 homeDir = os.path.expanduser('~')
 
-parameters['years']['data'] = list(map(str, range(2004,current_time.year + 1))) 
+lggr.info(f'*********************************** retrieveRelationandResourceCounts {dateStamp}')
+
+urlCount = 0
+urlInterval = 1
+
+targets = []                                
+                                            
+if args.getRelations:                       # the target retrievals can be controlled by command line arguments:
+    targets.append('relations')             # --affiliations --contributors --relations --resources retrieve all 
+if args.getResources:                       # items in each list, i.e. all relationTypes...
+    targets.append('resources')
+if args.getContributorTypes:
+    targets.append('contributors')
+if args.affiliationList:                    # read affiliations from the command line
+    targets.append('affiliations')
+    parameters['affiliations']['data'] = args.affiliationList       # set affiliation list from -al argument
+if args.getYears:
+    targets.append('years')                 # create a list of years from args.minYear to present
+    parameters['years']['data'] = list(map(str, range(args.minYear,current_time.year + 1))) 
 
 if args.showTargetData:                 # list items for each target
     for t in list(parameters):
@@ -420,28 +460,8 @@ if args.showTargetData:                 # list items for each target
     print(f'\nFacets ({len(facets)}) items:\n{facets}')
     exit()
 
-lggr.info(f'*********************************** retrieveRelationandResourceCounts {dateStamp}')
-
-itemCount = 0
-itemInterval = 1
-
-targets = []                                
-                                            
-if args.getRelations:                       # the target retrievals can be controlled by command line arguments:
-    targets.append('relations')             # --affiliations --contributors --relations --resources retrieve all 
-if args.getResources:                       # items in each list, i.e. all relationTypes...
-    targets.append('resources')
-if args.affiliationList:
-    targets.append('affiliations')
-    parameters['affiliations']['data'] = args.affiliationList       # set affiliation list from -al argument
-if args.getContributorTypes:
-    targets.append('contributors')
-if args.getYears:
-    targets.append('years')
-
-
-for i in args.itemList:                     # targets can also be listed as items on the command line if only
-    for t in list(parameters):              # a small number of targets are needed. For example, -il Workflow
+for i in args.itemList:                     # targets can also be listed as items on the command line
+    for t in list(parameters):              # if only a small number of targets are needed. For example, -il Workflow
         if i in parameters[t]['data']:      # will retrieve data for just Workflow (a resource type)
             targets.append(t)
 
@@ -451,53 +471,115 @@ if len(targets) == 0:
 else:
     lggr.info(f'Targets: {targets}')
 
+url_parameter_lists = []                                  
+parameter_lists = []
+url_parameters = []
+URL_List = []
+param_List = []
 
-d_list = []                                         # initialize list of dictionaries
+if args.combineQueries:
+    #
+    # In some cases we need facet data from queries that combine multiple parameters, e.g. facets from
+    # resourceType = Dataset and affiliation = someUniversity. The combineQueries option can be used to 
+    # generate these results. It takes items from args.itemList, finds the targets thay are in, and runs
+    # queries for all possible combinations.
+    #
+    # url_parameter_lists is a list of the url_parameters from each target,
+    # e.g [[relation url parameters], [resource url parameters], [years]]. All combinations of items in 
+    # these lists are used to create combined queries.
+    #
+    if len(args.itemList) == 0:
+        lggr.warning('itemList must be defined for combinedQueries')
+        exit()
 
-for target in set(targets):                         # loop through targets
-    lggr.debug(f'target')
+    for target in ['relations', 'resources', 'contributors']:
+                                                                    # trim the parameter data lists for these targets so 
+                                                                    # they only contain items in the itemList
+        parameters[target]['data'] = [x for x in parameters[target]['data'] if x in args.itemList]
 
-    for item in parameters[target]['data']:         # loop items in target data
+        if len(parameters[target]['data']) > 0:                     # if there are parameters from the itemList for this target
+            parameter_lists.append(parameters[target]['data'])      # append the list of parameters to parameter_lists (a list of lists)
+            #
+            # convert the remaining parameters into URL parameters, i.e. Dataset (a resource) becomes resource-type-id=Dataset
+            # so that it can be included in a URL. url_parameters is a list of these parameters for this target
+            #
+            url_parameters = [parameters[target]['queryString'] + x for x in parameters[target]['data']]
+            url_parameter_lists.append(url_parameters)              # append the list of url parameters to url_parameter_lists (a list of lists)
+    
+    target = 'affiliations'                                         # if affiliations are specified they are all included
+    if len(parameters[target]['data']) > 0:                         # in the combined queries, i.e. no trimming required
+        parameter_lists.append(parameters[target]['data'])          # append list of affiliations to parameter_lists (list of lists)
+                                                                    # convert affiliations to URL parameters
+        url_parameters = [parameters[target]['queryString'] + x.replace(' ','*') + '*' for x in parameters[target]['data']]
+        url_parameter_lists.append(url_parameters)                                # append the list of affiliation url parameters to url_parameter_lists (a list of lists)
 
-        if len(args.itemList) > 0 and not item in args.itemList:    # skip items not in itemList
-            continue
+    target = 'years'                                                # if years are specified they are all included
+    if len(parameters[target]['data']) > 0:                         # in the combined queries, i.e. no trimming required
+        parameter_lists.append(parameters[target]['data'])          # append list of years to parameter_lists (list of lists)
+                                                                    # convert years to URL parameters
+        url_parameters = [parameters[target]['queryString'] + x for x in parameters[target]['data']]
+        url_parameter_lists.append(url_parameters)                  # append the list of year url parameters to url_parameter_lists (a list of lists)
 
-        if target == 'affiliations':                # add wildcards to affiliation
-            URL = parameters[target]['url'] + item.replace(' ','*') + '*'
-        else:
-            URL = parameters[target]['url'] + item
+else:                                                   # simple queries, i.e. no combinations
+    for target in set(targets):                         # loop through targets
+        lggr.debug(f'target')
+        for item in parameters[target]['data']:         # loop items in target data
+            if target == 'affiliations':                # add wildcards to affiliation
+                url_parameters.append(parameters[target]['queryString'] + item.replace(' ','*') + '*')
+            else:
+                url_parameters.append(parameters[target]['queryString'] + item)
 
-        if args.showURLs:                       # display URL to be retrieved without retrieving data
-            lggr.info(f'URL: {URL}')
-            continue
+        parameter_lists.extend(parameters[target]['data'])
 
-        res = retrieveMetadata(URL)             # retrieve metadata from DataCite
-        item_json = res.json()
+    url_parameter_lists = [url_parameters]                       # convert url_parameter_lists to list of lists
+    parameter_lists = [parameter_lists]                          # convert parameter_lists to list of lists
 
-        if args.jout:           # write json to file in directory home/data/DataCite/metadata/
-                                # the file name includes item__datestamp
-            jsonDirectory = homeDir + '/data/DataCite/metadata/' + target + '__' + dateStamp + '/json'
-            os.makedirs(jsonDirectory, exist_ok = True)
-            jsonFile = jsonDirectory + '/' + item.replace(' ','_') + '.json'
-            lggr.info(f'{item} json output to {jsonFile}')
-            with open(jsonFile,'w') as outf:
-                json.dump(item_json, outf, ensure_ascii=False)
+for u in list(itertools.product(*url_parameter_lists)):                             # create list of all combinations of items in url_parameter_lists
+    URL_List.append('https://api.datacite.org/dois?&page[size]=1&' + '&'.join(u))   # and create urls with &-separated parameters
+    
+for p in list(itertools.product(*parameter_lists)):                                 # create a list of all combinations of the paramters used in
+    #param_List = list(itertools.product(*parameter_lists))
+    param_List.append(p)                                                            # each query. These are used to create the names of the query results
 
-        numberOfRecords = item_json.get('meta').get('total')
-        if numberOfRecords == 0:
-            continue
+lggr.info(f"URL List: {len(URL_List)} items. Parameter List: {len(param_List)}")
+#print('\n'.join(URL_List))
 
-        itemCount += 1
-        if itemCount % itemInterval == 0:
-            lggr.info(f'Count: {itemCount} target: {target} URL: {URL} Number of records: {numberOfRecords}')
+d_list = []                                # initialize list of dictionaries
 
-        if args.facetList:
-            facetList = args.facetList
-        else:
-            facetList = facets
+for u,p in zip(URL_List, param_List):     # loop items in target data
 
-        d_dict = createFacetsDictionary(facetList,item, dateStamp, numberOfRecords, item_json)
-        d_list.append(d_dict)
+    if args.showURLs:                               # display URL and parameters to be retrieved without retrieving data
+        lggr.info(f'URL: {u} Parameters:{p}')       # use this to test various command line arguments
+        continue
+
+    res = retrieveMetadata(u)             # retrieve metadata from DataCite
+    item_json = res.json()
+
+    if args.jout:           # write json to file in directory home/data/DataCite/metadata/
+                            # the file name includes item__datestamp
+        jsonDirectory = homeDir + '/data/DataCite/metadata/' + '_'.join(p) + '__' + dateStamp + '/json'
+        os.makedirs(jsonDirectory, exist_ok = True)
+        jsonFile = jsonDirectory + '/' + '_'.join(p) + '.json'
+        lggr.info(f'{item} json output to {jsonFile}')
+        with open(jsonFile,'w') as outf:
+            json.dump(item_json, outf, ensure_ascii=False)
+
+    numberOfRecords = item_json.get('meta').get('total')
+    if numberOfRecords == 0:
+        lggr.info(f'Count: {urlCount} URL: {u} Parameters: {p} Number of records: {numberOfRecords}')
+        continue
+
+    urlCount += 1
+    if urlCount % urlInterval == 0:
+        lggr.info(f'Count: {urlCount} URL: {u} Parameters: {p} Number of records: {numberOfRecords}')
+
+    if args.facetList:
+        facetList = args.facetList
+    else:
+        facetList = facets
+
+    d_dict = createFacetsDictionary(facetList, p, dateStamp, numberOfRecords, item_json)
+    d_list.append(d_dict)
 
 item_df = pd.DataFrame(d_list) # create dataframe
 
@@ -505,9 +587,12 @@ if args.facetdata:                               # create and output facet data
     for facet in args.facetList:
         data_l = []
         for i in item_df.index:
-            data_d = {'id':item_df.loc[i,'Id']}
+            data_d = {}
+            for p in [x for x in item_df.columns if x.startswith('parameter')]:
+                data_d.update({p: item_df.loc[i,p]})
+#            data_d = {'id':item_df.loc[i,'Id']}
             data_d.update(createDictionaryFromCountString(item_df.loc[i,facet]))
-            data_l.append(data_d)
+            data_l.append(copy.deepcopy(data_d))
                         
         facet_df = pd.DataFrame(data_l)
 
@@ -521,7 +606,7 @@ if args.facetdata:                               # create and output facet data
             writeHTMLOutput(htmlOutputFile,facet_df,True)        
 
 if args.csvout:                                 # output data to csv
-    outputFile = 'DataCite_' + '_'.join(set(targets)) + '__' + dateStamp + '.csv'
+    outputFile = 'DataCite_' + '_combined__' + dateStamp + '.csv'
     lggr.info(f'facet count output to {outputFile}')
     item_df.to_csv(outputFile,encoding='utf-8',sep=',',index=False)
     
