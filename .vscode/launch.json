@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "DataCite Facets",
             "type": "python",
@@ -11,28 +12,28 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "cwd":"/Users/metadatagamechanger/ProjectsAndPlans/RADS/affiliationFacets",
+            "cwd":"/Users/tedhabermann/Documents/MetadataGameChanger/Repositories/DataCiteFacets",
             "args": [
-                "-al",
-                "Cornell University",
+//                "-al",
+//                "Cornell University",
 //                "University of Minnesota",
 //                "-fl",
 //                "published",
 //                "--relations",
 //                "--resources",
                 "-fl",
-                    "clients",
+                "clients",
                 "-il",
-                "Dataset",
-                "Software",
+                "OutputManagementPlan",
+//                "Software",
 //                "DataCurator",
 //                "--years",
 //                "-minYear",
 //                "2021",
-                "--combineQueries",
+//                "--combineQueries",
 //                "--htmlout",
 //                "--csvout",
-                "--facetdata"
+                "--pout"
             ]
         }
     ]
