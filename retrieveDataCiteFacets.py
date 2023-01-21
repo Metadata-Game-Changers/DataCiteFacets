@@ -521,15 +521,24 @@ if args.combineQueries:
         url_parameter_lists.append(url_parameters)                  # append the list of year url parameters to url_parameter_lists (a list of lists)
 
 else:                                                   # simple queries, i.e. no combinations
-    for target in set(targets):                         # loop through targets
+    for target in set(targets):                         # loop through unique targets (e.g. 'resources', 'contributors', 'relations')
         lggr.debug(f'target')
-        for item in parameters[target]['data']:         # loop items in target data
+        for item in parameters[target]['data']:         # loop items in target data (all specific items) to find items
+                                                        # url_parameters are the strings used in the query URL to specify parameters for a
+                                                        # particular kind of search. For example: "queryString": 'resource-type-id=' for
+                                                        # resourceType queries.
             if target == 'affiliations':                # add wildcards to affiliation
                 url_parameters.append(parameters[target]['queryString'] + item.replace(' ','*') + '*')
             else:
-                url_parameters.append(parameters[target]['queryString'] + item)
-
-        parameter_lists.extend(parameters[target]['data'])
+                if len(args.itemList) > 0:              # if args.itemList is specified, just get items on list
+                    if item in args.itemList:
+                        url_parameters.append(parameters[target]['queryString'] + item)
+                        parameter_lists.append(item)
+                else:
+                    url_parameters.append(parameters[target]['queryString'] + item)
+        
+        if len(args.itemList) == 0:                                 # parameter list is the list of requested parameter names
+            parameter_lists.extend(parameters[target]['data'])
 
     url_parameter_lists = [url_parameters]                       # convert url_parameter_lists to list of lists
     parameter_lists = [parameter_lists]                          # convert parameter_lists to list of lists

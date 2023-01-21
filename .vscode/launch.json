@@ -25,6 +25,8 @@
                 "clients",
                 "-il",
                 "OutputManagementPlan",
+                "Distributor",
+                "Compiles",
 //                "Software",
 //                "DataCurator",
 //                "--years",
