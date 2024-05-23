@@ -49,7 +49,7 @@ optional arguments:
 ```
 
 # Environment
-The environment definition for this application is in *dataCiteFacets.yml*. This file can be used to create the environment using the command *conda env create -f environment.yml*. After that environment is created, activate it using the *conda activate dataCiteFacets* command and the command *retrieveDataCiteFacets -h* will show the usage description.
+The environment definition for this application is in *dataCiteFacets.yml*. This file can be used to create the environment using the command *conda env create -f dataCiteFacets.yml*. After that environment is created, activate it using the *conda activate dataCiteFacets* command and the command *retrieveDataCiteFacets -h* will show the usage description.
 
 # Targets and Items
 RetrieveDataCiteFacets is designed to answer questions about several kinds of *targets*, specifically resourceTypes, relationTypes, contributorTypes, or creator affiliations (a special case). *Targets* are groups of *items* defined by DataCite codelists. To see the *items* included in each *target*, use the --showtargets flag to display all *target items*.  

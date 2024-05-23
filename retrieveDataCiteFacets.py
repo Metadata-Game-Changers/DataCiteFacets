@@ -286,9 +286,9 @@ parameters = {
     },
     "resources": {
         "data": ['Audiovisual','Book','BookChapter','Collection','ComputationalNotebook','ConferencePaper',\
-                 'ConferenceProceeding','DataPaper','Dataset','Dissertation','Event','Image','InteractiveResource',\
+                 'ConferenceProceeding','DataPaper','Dataset','Dissertation','Event','Image','Instrument','InteractiveResource',\
                  'Journal','JournalArticle','Model','OutputManagementPlan','PeerReview','PhysicalObject','Preprint',\
-                 'Report','Service','Software','Sound','Standard','Text','Workflow','Other'],
+                 'Report','Service','Software','Sound','Standard','StudyRegistration','Text','Workflow','Other'],
         "queryString": 'resource-type-id=',
         "url":  'https://api.datacite.org/dois?&page[size]=1&resource-type-id='
     },
@@ -592,7 +592,7 @@ for u,p in zip(URL_List, param_List):     # loop items in target data
 
 item_df = pd.DataFrame(d_list) # create dataframe
 
-if args.facetdata:                               # create and output facet data
+if args.facetdata:                              # create and output facet data
     for facet in args.facetList:
         data_l = []
         for i in item_df.index:
@@ -625,12 +625,12 @@ if args.dbout:                                  # add data to database
     databaseTableName = 'relationsAndResources'
     item_df.to_sql(databaseTableName,con,if_exists='append',index=False)
 
-if args.htmlout:                                 # output data to html
+if args.htmlout:                                # output data to html
     htmlOutputFile = 'DataCite_' + '_'.join(set(targets)) + '__' + dateStamp + '.html'
     lggr.info(f'facet count output to {htmlOutputFile}')
     writeHTMLOutput(htmlOutputFile,item_df,False)
 
-if args.pout:                                       # print facet counts to screen
+if args.pout:                                   # print facet counts to screen
                                                     # this produces VERY UGLY screen output that may work 
                                                     # for a quick look in some cases.  
     from tabulate import tabulate
