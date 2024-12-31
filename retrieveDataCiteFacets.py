@@ -285,7 +285,7 @@ parameters = {
         "url":  'https://api.datacite.org/dois?&page[size]=1&query=relatedIdentifiers.relationType:' 
     },
     "resources": {
-        "data": ['Audiovisual','Book','BookChapter','Collection','ComputationalNotebook','ConferencePaper',\
+        "data": ['Audiovisual','Award','Book','BookChapter','Collection','ComputationalNotebook','ConferencePaper',\
                  'ConferenceProceeding','DataPaper','Dataset','Dissertation','Event','Image','Instrument','InteractiveResource',\
                  'Journal','JournalArticle','Model','OutputManagementPlan','PeerReview','PhysicalObject','Preprint',\
                  'Report','Service','Software','Sound','Standard','StudyRegistration','Text','Workflow','Other'],
@@ -296,7 +296,7 @@ parameters = {
         "data": ['ContactPerson','DataCollector','DataCurator','DataManager','Distributor','Editor', 'Funder',
                     'HostingInstitution','Other','Producer','ProjectLeader','ProjectManager','ProjectMember',
                     'RegistrationAgency','RegistrationAuthority','RelatedPerson','ResearchGroup','RightsHolder',
-                    'Researcher','Sponsor','Supervisor','WorkPackageLeader'],
+                    'Researcher','Sponsor','Supervisor','Translator','WorkPackageLeader'],
         "queryString": 'query=contributors.contributorType:',
         "url": 'https://api.datacite.org/dois?query=contributors.contributorType:'
     },
