@@ -287,7 +287,7 @@ parameters = {
     "resources": {
         "data": ['Audiovisual','Award','Book','BookChapter','Collection','ComputationalNotebook','ConferencePaper',\
                  'ConferenceProceeding','DataPaper','Dataset','Dissertation','Event','Image','Instrument','InteractiveResource',\
-                 'Journal','JournalArticle','Model','OutputManagementPlan','PeerReview','PhysicalObject','Preprint',\
+                 'Journal','JournalArticle','Model','OutputManagementPlan','PeerReview','PhysicalObject','Preprint','Project',\
                  'Report','Service','Software','Sound','Standard','StudyRegistration','Text','Workflow','Other'],
         "queryString": 'resource-type-id=',
         "url":  'https://api.datacite.org/dois?&page[size]=1&resource-type-id='
