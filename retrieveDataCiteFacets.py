@@ -282,7 +282,7 @@ parameters = {
              'IsDerivedFrom', 'IsSourceOf', 'Describes', 'IsDescribedBy', 'HasVersion', 'IsVersionOf', 'Requires', \
              'IsRequiredBy', 'Obsoletes', 'IsObsoletedBy'],
         "queryString": 'query=relatedIdentifiers.relationType:',
-        "url":  'https://api.datacite.org/dois?&page[size]=1&query=relatedIdentifiers.relationType:' 
+        "url":  'https://api.datacite.org/dois?&page[size]=1&disable-facets=false&query=relatedIdentifiers.relationType:' 
     },
     "resources": {
         "data": ['Audiovisual','Award','Book','BookChapter','Collection','ComputationalNotebook','ConferencePaper',\
@@ -290,7 +290,7 @@ parameters = {
                  'Journal','JournalArticle','Model','OutputManagementPlan','PeerReview','PhysicalObject','Preprint','Project',\
                  'Report','Service','Software','Sound','Standard','StudyRegistration','Text','Workflow','Other'],
         "queryString": 'resource-type-id=',
-        "url":  'https://api.datacite.org/dois?&page[size]=1&resource-type-id='
+        "url":  'https://api.datacite.org/dois?&page[size]=1&disable-facets=false&resource-type-id='
     },
     "contributors": {
         "data": ['ContactPerson','DataCollector','DataCurator','DataManager','Distributor','Editor', 'Funder',
@@ -303,12 +303,12 @@ parameters = {
     "affiliations": {
         "data": [],
         "queryString": 'query=creators.affiliation.name:*',
-        "url": 'https://api.datacite.org/dois?query=creators.affiliation.name:*'
+        "url": 'https://api.datacite.org/dois?disable-facets=false&query=creators.affiliation.name:*'
     },
     "years": {
         "data": [],
         "queryString": 'registered=',
-        "url": 'https://api.datacite.org/dois?registered='
+        "url": 'https://api.datacite.org/dois?disable-facets=false&registered='
     }
 }
 
@@ -544,7 +544,7 @@ else:                                                   # simple queries, i.e. n
     parameter_lists = [parameter_lists]                          # convert parameter_lists to list of lists
 
 for u in list(itertools.product(*url_parameter_lists)):                             # create list of all combinations of items in url_parameter_lists
-    URL_List.append('https://api.datacite.org/dois?&page[size]=1&' + '&'.join(u))   # and create urls with &-separated parameters
+    URL_List.append('https://api.datacite.org/dois?&page[size]=1&disable-facets=false&' + '&'.join(u))   # and create urls with &-separated parameters
     
 for p in list(itertools.product(*parameter_lists)):                                 # create a list of all combinations of the paramters used in
     #param_List = list(itertools.product(*parameter_lists))
